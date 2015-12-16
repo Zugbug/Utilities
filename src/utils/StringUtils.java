@@ -1,0 +1,64 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package utils;
+
+import java.text.Normalizer;
+import java.util.Arrays;
+import java.util.List;
+
+/**
+ *
+ * @author zugbug
+ */
+public class StringUtils {
+
+    public static String capitalise(String word) {
+        return Character.toUpperCase(word.charAt(0)) + word.substring(1).toLowerCase();
+    }
+
+    public static String fatString(String src) {
+        return src.chars().boxed().map((Integer s) -> (char) s.intValue()).map((Character s) -> (32 < s && s < 126) ? fatChar(s) : s).map(Object::toString).reduce((String a, String b) -> a + b).orElse("");
+    }
+
+    public static char fatChar(char src) {
+        return (char) (src - 'a' + 65365 - 20);
+    }
+
+    public static String capitaliseEachWord(String nextLine) {
+        return (nextLine.length() == 0) ? "" : Arrays.asList(nextLine.split(" ")).stream().filter((String s) -> (s != null && !"".equals(s))).map((String s) -> capitalise(s)).reduce((String a, String b) -> a + " " + b).orElse("");
+    }
+
+    public static float stringMatch(String toString, String toString0) {
+        return stringMatch(toString, toString0, false);
+    }
+
+    public static String flattenToAscii(String string) {
+        StringBuilder sb = new StringBuilder(string.length());
+        string = Normalizer.normalize(string, Normalizer.Form.NFD);
+        for (char c : string.toCharArray()) {
+            if (c <= '\u007F') {
+                sb.append(c);
+            }
+        }
+        return sb.toString();
+    }
+
+    public static float stringMatch(String ths, String tht, boolean lastMatchFail) {
+        ths = flattenToAscii(ths);
+        tht = flattenToAscii(tht);
+        if (lastMatchFail) {
+            if (ths.endsWith(((Character) tht.charAt(tht.length())).toString())) {
+                return 1;
+            }
+        } else if (ths.startsWith(((Character) tht.charAt(0)).toString())) {
+            return 1;
+        }
+        List<Tuple<Character, Character>> lotoc = Tuple.listFromStreamTuples(Tuple.of(ths, tht)
+                .map((String s) -> s.chars().mapToObj(elem -> (char) elem)));
+        return (float) Tuple.samePairsPercentage(lotoc);
+
+    }
+}
