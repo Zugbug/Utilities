@@ -17,13 +17,10 @@ import java.util.function.Predicate;
  */
 public class Main {
 
-
-
     public static void main(String[] args) {
-        System.err.println("1<4<5");
-        System.err.println(1<4&&4<5);
-        System.err.println(Logic.between('a','b','x'));
-        
+//        System.err.println("1<4<5");
+//        System.err.println(1<4&&4<5);
+//        System.err.println(Logic.between('a','b','x'));
 //        System.err.println(EasyFile.getAll("h"));
 //
 //        Tuple<String, String> t = Tuple.of("hey", "mate");
@@ -52,16 +49,14 @@ public class Main {
 //        System.err.println(MAKEBIG(new Scanner(System.in).nextLine())
 //                .chars().boxed().map(s -> "" + (char) s.intValue())
 //                .reduce((a, b) -> a + "\n" + b).orElse(""));
-//        for (Integer integer : range(1, 10, 1)) {
-//            System.err.println(integer);
-//        }
+        for (Integer integer : utils.Logic.range(1, 2, -1)) {
+            System.err.println(integer);
+        }
 
     }
-
 
     private static int recadd(int[] things, int length) {
         return (length > 0) ? things[--length] + recadd(things, length) : 0;
     }
-
 
 }

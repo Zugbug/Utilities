@@ -5,7 +5,9 @@
  */
 package utils;
 
+import java.util.Arrays;
 import java.util.Iterator;
+import java.util.function.Predicate;
 
 /**
  *
@@ -27,26 +29,80 @@ public class Logic {
         return src.compareTo(lower) + src.compareTo(upper) == 0;
     }
 
-    private static Iterable<Integer> range(int s, int e, int o) {
-        return () -> new Iterator<Integer>() {
-            int index;
-            {
-                index = s - o;
-            }
+    public static Iterable<Integer> range(int s, int e, int o) {
 
+        return (o == 0) ? new Iterable<Integer>() {
             @Override
-            public boolean hasNext() {
-                return (index + o) < e;
-            }
+            public Iterator<Integer> iterator() {
+                return new Iterator<Integer>() {
+                    @Override
+                    public boolean hasNext() {
+                        return false;
+                    }
 
-            @Override
-            public Integer next() {
-                return index = index + o;
+                    @Override
+                    public Integer next() {
+                        return 0;
+                    }
+                };
             }
-        };
+        }
+                : (o > 0) ? () -> new Iterator<Integer>() {
+                    int index;
+
+                    {
+                        index = s - o;
+                    }
+
+                    @Override
+                    public boolean hasNext() {
+                        return (index + o) < e;
+                    }
+
+                    @Override
+                    public Integer next() {
+                        return index = index + o;
+                    }
+                } : () -> new Iterator<Integer>() {
+                    int index;
+
+                    {
+                        index = s - o;
+                    }
+
+                    @Override
+                    public boolean hasNext() {
+                        return (index - o) > e;
+                    }
+
+                    @Override
+                    public Integer next() {
+                        return index = index - o;
+                    }
+                };
     }
 
     public static Iterable<Integer> range(int s, int e) {
         return range(s, e, 1);
+    }
+
+    public static <T> boolean matchAny(Predicate<? super T> match, T... targets) {
+        if (targets.length == 0) {
+            return false;
+        }
+        for (T par : targets) {
+            if (match.test(par)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean eitherMatch(String tar, String... matches) {
+        return matchAny(tar::equalsIgnoreCase, matches);
+    }
+
+    public static <T> boolean matchAll(Predicate<? super T> match, T... targets) {
+        return Arrays.asList(targets).stream().allMatch(match);
     }
 }

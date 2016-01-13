@@ -72,26 +72,26 @@ public class EasyFile {
 
     }
 
-    static String read(File file) {
+    public static String read(File file) {
         return StreamSupport.stream(((Iterable<String>) ()
                 -> ((ExceptionReturner<Scanner>) () -> new Scanner(file).useDelimiter("\n"))
                 .tryReturn().orElse(new Scanner(""))).spliterator(), false)
                 .reduce((a, b) -> a + "\n" + b).orElse("");
     }
 
-    static void write(File tar, String msg) throws FileNotFoundException {
+    public static void write(File tar, String msg) throws FileNotFoundException {
         writeStream(new FileOutputStream(tar), msg);
     }
 
-    static void append(File tar, String msg) throws FileNotFoundException {
+    public static void append(File tar, String msg) throws FileNotFoundException {
         writeStream(new FileOutputStream(tar, true), msg);
     }
 
-    static void prepend(File tar, String msg) throws FileNotFoundException {
+    public static void prepend(File tar, String msg) throws FileNotFoundException {
         writeStream(new FileOutputStream(tar, false), msg);
     }
 
-    static void writeStream(OutputStream out, String msg) throws FileNotFoundException {
+    public static void writeStream(OutputStream out, String msg) throws FileNotFoundException {
         msg.chars().boxed().map(s -> (char) s.intValue()).forEach(((ExceptionConsumer<Character>) out::write)::tryConsume);
     }
     

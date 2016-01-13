@@ -36,6 +36,10 @@ public class Tuple<X, Y> {
     public static <X, Y> Tuple<X, Y> of(X l, Y r) {
         return new Tuple<>(l, r);
     }
+    public static <X> Tuple<X,X> of(X[] array){
+        if(array.length!=2) throw new RuntimeException("Array must contain only 2 elements");
+        return Tuple.of(array[0], array[1]);
+    }
 
     public static <B> Tuple<List<B>, List<B>> of(B[] l, B[] r) {
         return of(Arrays.asList(r), Arrays.asList(l));
@@ -78,8 +82,19 @@ public class Tuple<X, Y> {
     }
 
     public <T, R> Tuple<R, R> map(Function<? super T, ? extends R> mapper) {
-        assert left.getClass() == right.getClass();
+        if (left.getClass() != right.getClass()) {
+            throw new RuntimeException("left.class is " + left.getClass().getName() + "but right.class is " + left.getClass().getName());
+        }
         return (Tuple<R, R>) Tuple.of(mapper.apply((T) left), mapper.apply((T) right));
+    }
+
+    public <T extends X, R> Tuple<R,T> mapLeft(Function<? super T, ? extends R> mapper) {
+        return Tuple.of(mapper.apply((T) left),(T) right);
+    }
+
+    public <T, R> Tuple<T,R> mapRight(Function<? super T, ? extends R> mapper) {
+        return Tuple.of((T)left, mapper.apply((T) right));
+
     }
 
     public static <X> double samePairsPercentage(List<Tuple<X, X>> tar) {

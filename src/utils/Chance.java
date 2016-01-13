@@ -44,24 +44,5 @@ public class Chance {
 
     
 
-    public static boolean eitherMatch(String tar, String... matches) {
-        return anyMatch(tar::equalsIgnoreCase, matches);
-    }
-
-    public static <T> boolean allMatch(Predicate<? super T> match, T... targets) {
-        return Arrays.asList(targets).stream().allMatch(match);
-    }
-
-    public static <T> boolean anyMatch(Predicate<? super T> match, T... targets) {
-        if (targets.length == 0) {
-            return false;
-        }
-        for (T par : targets) {
-            if (match.test(par)) {
-                return true;
-            }
-        }
-        return false;
-    }
 
 }
