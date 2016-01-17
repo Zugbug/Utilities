@@ -29,8 +29,8 @@ public class Tuple<X, Y> {
     private final Y right;
 
     private Tuple(X l, Y r) {
-        right = r;
-        left = l;
+        this.right = r;
+        this.left = l;
     }
 
     public static <X, Y> Tuple<X, Y> of(X l, Y r) {
@@ -70,11 +70,11 @@ public class Tuple<X, Y> {
     }
 
     public X left() {
-        return left;
+        return this.left;
     }
 
     public Y right() {
-        return right;
+        return this.right;
     }
 
     public <X, Y, R> R operate(BiFunction<X, Y, R> mapper) {
