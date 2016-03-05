@@ -5,15 +5,45 @@
  */
 package utils;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Stream;
+import java.util.zip.DataFormatException;
+import java.util.zip.Deflater;
+import java.util.zip.GZIPOutputStream;
+import java.util.zip.Inflater;
 
 /**
  *
  * @author zugbug
  */
 public class Logic {
+
+    static public String rot13(String entry) {
+        return entry.chars().boxed().map(s -> (char) s.intValue())
+                .map((Character t) -> {
+                    if (!Character.isLetter(t)) {
+                        return (int) t;
+                    }
+                    int offset;
+                    if (Character.isUpperCase(t)) {
+                        offset = 65;
+                    } else {
+                        offset = 97;
+                    }
+                    int start = ((int) t) - offset;
+                    return (offset + ((start + 13) % 26));
+                })
+                .map(s -> (char) s.intValue() + "")
+                .reduce((a, b) -> a + "" + b)
+                .orElse("");
+    }
 
     /**
      * compares as lower < src < upper;

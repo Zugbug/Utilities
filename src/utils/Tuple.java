@@ -25,6 +25,10 @@ import java.util.stream.Stream;
  */
 public class Tuple<X, Y> {
 
+    public static Tuple<String,String> split(String src, String split) {
+        return Tuple.of(src.split(split));
+    }
+
     private final X left;
     private final Y right;
 

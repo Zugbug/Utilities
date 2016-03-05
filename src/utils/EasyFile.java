@@ -5,21 +5,13 @@
  */
 package utils;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Collection;
 import java.util.Optional;
 import java.util.Scanner;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 /**
@@ -44,21 +36,22 @@ public class EasyFile {
 
 
     @FunctionalInterface
-    interface ExceptionReturner<T> {
+    public interface ExceptionReturner<T> {
 
         T operate() throws Exception;
 
-        default Optional<T> tryReturn() {
+        default T tryReturn() {
+            
             try {
-                return Optional.of(this.operate());
+                return this.operate();
             } catch (Exception e) {
-                return Optional.empty();
+                throw new RuntimeException("Could not operate: " + e.getMessage());
             }
         }
     }
 
     @FunctionalInterface
-    interface ExceptionConsumer<T> {
+    public interface ExceptionConsumer<T> {
 
         void operate(T val) throws Exception;
 
@@ -66,7 +59,7 @@ public class EasyFile {
             try {
                 operate(val);
             } catch (Exception e) {
-                System.err.println("could not consume " + val + ": " + e.getMessage());
+                throw new RuntimeException("Could not consume " + val + ": " + e.getMessage());
             }
         }
 
@@ -75,7 +68,7 @@ public class EasyFile {
     public static String read(File file) {
         return StreamSupport.stream(((Iterable<String>) ()
                 -> ((ExceptionReturner<Scanner>) () -> new Scanner(file).useDelimiter("\n"))
-                .tryReturn().orElse(new Scanner(""))).spliterator(), false)
+                .tryReturn()).spliterator(), false)
                 .reduce((a, b) -> a + "\n" + b).orElse("");
     }
 

@@ -49,10 +49,8 @@ public class Main {
 //        System.err.println(MAKEBIG(new Scanner(System.in).nextLine())
 //                .chars().boxed().map(s -> "" + (char) s.intValue())
 //                .reduce((a, b) -> a + "\n" + b).orElse(""));
-        for (Integer integer : utils.Logic.range(1, 2, -1)) {
-            System.err.println(integer);
-        }
-
+        String s = StringUtils.fatString("AESTHETICS");
+        System.err.println(s);
     }
 
     private static int recadd(int[] things, int length) {
