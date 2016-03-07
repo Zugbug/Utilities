@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Optional;
 import java.util.Scanner;
+import java.util.function.Function;
 import java.util.stream.StreamSupport;
 
 /**
@@ -40,7 +41,7 @@ public class EasyFile {
         T operate() throws Exception;
 
         default T tryReturn() {
-            
+
             try {
                 return this.operate();
             } catch (Exception e) {
@@ -64,13 +65,27 @@ public class EasyFile {
 
     }
 
+    @FunctionalInterface
+    public interface ThrowingFunction<T, Y> extends Function<T, Y> {
+
+        @Override
+        default Y apply(final T elem) {
+            try {
+                return applyThrows(elem);
+            } catch (final Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        Y applyThrows(T elem) throws Exception;
+    }
+
     public static String read(File file) {
         return StreamSupport.stream(((Iterable<String>) ()
             -> ((ExceptionReturner<Scanner>) () -> new Scanner(file).useDelimiter("\n"))
             .tryReturn()).spliterator(), false)
             .reduce((a, b) -> a + "\n" + b).orElse("");
     }
-
 
     public static void append(File tar, String msg) throws FileNotFoundException {
         writeStream(new FileOutputStream(tar, true), msg);
