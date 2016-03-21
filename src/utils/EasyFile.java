@@ -10,9 +10,12 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Optional;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Scanner;
+import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.StreamSupport;
 
 /**
@@ -36,35 +39,67 @@ public class EasyFile {
     }
 
     @FunctionalInterface
-    public interface ExceptionReturner<T> {
+    public interface ThrowingSupplier<T> extends Supplier<T> {
 
-        T operate() throws Exception;
-
-        default T tryReturn() {
-
+        @Override
+        default public T get() {
             try {
-                return this.operate();
+                return getThrows();
             } catch (Exception e) {
-                throw new RuntimeException("Could not operate: " + e.getMessage());
+                throw new RuntimeException(e);
             }
         }
+
+        T getThrows() throws Exception;
+
     }
 
     @FunctionalInterface
-    public interface ExceptionConsumer<T> {
+    public interface ThrowingConsumer<T> extends Consumer<T> {
 
-        void operate(T val) throws Exception;
-
-        default void tryConsume(T val) {
+        @Override
+        default public void accept(T t) {
             try {
-                operate(val);
+                acceptThrows(t);
             } catch (Exception e) {
-                throw new RuntimeException("Could not consume " + val + ": " + e.getMessage());
+                throw new RuntimeException("Could not consume " + t + ": " + e.getMessage());
             }
         }
 
+        void acceptThrows(T val) throws Exception;
+
     }
 
+    @FunctionalInterface
+    public interface ThrowingRunnable extends Runnable {
+
+        @Override
+        default void run() {
+            try {
+                tryRun();
+            } catch (final Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        void tryRun() throws Exception;
+    }
+@FunctionalInterface
+    public interface ThrowingPredicate<T> extends Predicate<T> {
+
+        @Override
+        default public boolean test(T t){
+            try {
+                return testThrows(t);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        public boolean testThrows(T t) throws Exception;
+
+       
+    }
     @FunctionalInterface
     public interface ThrowingFunction<T, Y> extends Function<T, Y> {
 
@@ -81,10 +116,9 @@ public class EasyFile {
     }
 
     public static String read(File file) {
-        return StreamSupport.stream(((Iterable<String>) ()
-            -> ((ExceptionReturner<Scanner>) () -> new Scanner(file).useDelimiter("\n"))
-            .tryReturn()).spliterator(), false)
-            .reduce((a, b) -> a + "\n" + b).orElse("");
+        return StreamSupport.stream(((Iterable<String>) ((ThrowingSupplier<Scanner>) () -> new Scanner(file).useDelimiter("\n"))::get)
+                .spliterator(), false)
+                .reduce((a, b) -> a + "\n" + b).orElse("");
     }
 
     public static void append(File tar, String msg) throws FileNotFoundException {
@@ -96,7 +130,7 @@ public class EasyFile {
     }
 
     public static void writeStream(OutputStream out, String msg) {
-        msg.chars().boxed().map(s -> (char) s.intValue()).forEach(((ExceptionConsumer<Character>) out::write)::tryConsume);
+        msg.chars().boxed().map(s -> (char) s.intValue()).forEach((ThrowingConsumer<Character>) out::write);
     }
 
 }

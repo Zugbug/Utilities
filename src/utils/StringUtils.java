@@ -7,6 +7,7 @@ package utils;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  *
@@ -55,8 +56,63 @@ public class StringUtils {
             return 1;
         }
         List<Tuple<Character, Character>> lotoc = Tuple.listFromStreamTuples(Tuple.of(ths, tht)
-            .map((String s) -> s.chars().mapToObj(elem -> (char) elem)));
+                .map((String s) -> s.chars().mapToObj(elem -> (char) elem)));
         return (float) Tuple.samePairsPercentage(lotoc);
 
+    }
+
+    public static String alignLines(String src, String align) {
+        String[] lines = src.split("\n");
+        int splits = 1 + (src.length() - src.replace(align, "").length()) / align.length();
+        final String[][] splittedBits = new String[lines.length][splits]; //lines x lengths
+        for (int i = 0; i < lines.length; i++) {
+            splittedBits[i] = lines[i].split(align);
+        }
+        final int[] longests = new int[Stream.of(splittedBits).mapToInt(s -> s.length).max().getAsInt()];
+        for (String[] splittedBit : splittedBits) {
+            for (int j = 0; j < splittedBit.length; j++) {
+                longests[j] = Math.max(longests[j], splittedBit[j].length());
+            }
+        }
+        StringBuilder[] line = Stream.generate(StringBuilder::new).limit(lines.length).toArray((int i) -> new StringBuilder[i]);
+        for (int i = 0; i < splittedBits.length; i++) {//every line
+            for (int j = 0; j < splittedBits[i].length; j++) {//every bit
+
+                line[i].append(align).append(pad(splittedBits[i][j], longests[j] - splittedBits[i][j].length()));
+            }
+        }
+        return Stream.of(line).map(Object::toString).map(s -> s.substring(align.length())).reduce((a, b) -> a + "\n" + b).orElse("");
+    }
+
+    public static String pad(String src, int n, char side) {
+        if (n == 0) {
+            return src;
+        }
+        String pad = Stream.generate(() -> " ").limit(n).reduce((a, b) -> a + b).orElse(" ");
+        switch (Character.toLowerCase(side)) {
+            case 'c':
+                src = pad.substring(0, n / 2) + src + pad.substring(n / 2);
+                break;
+            case 'r':
+                src = pad + src;
+                break;
+            case 'l':
+            default:
+                src = src + pad;
+                break;
+        }
+        return src;
+    }
+
+    private static String pad(String string, int i) {
+        return pad(string, i, 'l');
+    }
+
+    public static String flatten(String[] q) {
+        StringBuilder sb = new StringBuilder();
+        for (String string : q) {
+            sb.append(string);
+        }
+        return sb.toString();
     }
 }

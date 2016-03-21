@@ -12,6 +12,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -25,35 +26,12 @@ import java.util.stream.Stream;
  */
 public class Tuple<X, Y> {
 
-    @Override
-    public boolean equals(Object obj) {
-        if (obj instanceof Tuple) {
-            Tuple conv = (Tuple) obj;
-            if ((conv.left.equals(this.left) || conv.left.equals(this.right)) && 
-                (conv.right.equals(this.right) || conv.right.equals(this.left))) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    @Override
-    public int hashCode() {
-        int hash = 7;
-        hash = 97 * hash + (Objects.hashCode(this.left) + Objects.hashCode(this.right));
-        return hash;
+    public static Tuple<String, String> splitOnce(String src, String split) {
+        return Tuple.of(src.substring(0, src.indexOf(split)), src.substring(1 + src.indexOf(split)));
     }
 
     public static Tuple<String, String> split(String src, String split) {
         return Tuple.of(src.split(split));
-    }
-
-    private final X left;
-    private final Y right;
-
-    private Tuple(X l, Y r) {
-        this.right = r;
-        this.left = l;
     }
 
     public static <X, Y> Tuple<X, Y> of(X l, Y r) {
@@ -82,17 +60,56 @@ public class Tuple<X, Y> {
             int diff;
             List<Optional> smaller = ((diff = ti.size() - ui.size()) < 0) ? ti : ui;
             smaller.addAll(Stream.generate(Optional::empty)
-                .limit(Math.abs(diff))
-                .collect(Collectors.toList()));
+                    .limit(Math.abs(diff))
+                    .collect(Collectors.toList()));
             List<Tuple<V, V>> merged = new ArrayList();
             for (Iterator<Optional> iLong = ((ui.size() > ti.size()) ? ui : ti).iterator(),
-                iShort = ((ui.size() > ti.size()) ? ti : ui).iterator(); iLong.hasNext();) {
+                    iShort = ((ui.size() > ti.size()) ? ti : ui).iterator(); iLong.hasNext();) {
                 V ix = (V) iLong.next().orElse('_');
                 V ux = (V) iShort.next().orElse('_');
                 merged.add(Tuple.of(ix, ux));
             }
             return new ArrayList(merged);
         });
+    }
+
+    public static <X> double samePairsPercentage(List<Tuple<X, X>> tar) {
+        return samePairsPercentage(tar.stream());
+    }
+
+    public static <X> double samePairsPercentage(Stream<Tuple<X, X>> tar) {
+        return tar.map(tuple -> tuple.operate((X left, X right) -> (left.equals(right)) ? 1 : 0))
+                .collect(Collectors.averagingDouble(s -> s));
+    }
+    private final X left;
+    private final Y right;
+
+    private Tuple(X l, Y r) {
+        this.right = r;
+        this.left = l;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof Tuple) {
+            Tuple conv = (Tuple) obj;
+            if ((conv.left.equals(this.left) || conv.left.equals(this.right))
+                    && (conv.right.equals(this.right) || conv.right.equals(this.left))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 97 * hash + (Objects.hashCode(this.left) + Objects.hashCode(this.right));
+        return hash;
+    }
+
+    public void consume(BiConsumer<X, Y> b) {
+        b.accept(left, right);
     }
 
     public X left() {
@@ -114,27 +131,17 @@ public class Tuple<X, Y> {
         return (Tuple<R, R>) Tuple.of(mapper.apply((T) left), mapper.apply((T) right));
     }
 
-    public <T extends X, R> Tuple<R, T> mapLeft(Function<? super T, ? extends R> mapper) {
-        return Tuple.of(mapper.apply((T) left), (T) right);
+    public <T> Tuple<T, Y> mapLeft(Function<X, T> mapper) {
+        return Tuple.of(mapper.apply(left), right);
     }
 
-    public <T, R> Tuple<T, R> mapRight(Function<? super T, ? extends R> mapper) {
-        return Tuple.of((T) left, mapper.apply((T) right));
-
-    }
-
-    public static <X> double samePairsPercentage(List<Tuple<X, X>> tar) {
-        return samePairsPercentage(tar.stream());
-    }
-
-    public static <X> double samePairsPercentage(Stream<Tuple<X, X>> tar) {
-        return tar.map(tuple -> tuple.operate((X left, X right) -> (left.equals(right)) ? 1 : 0))
-            .collect(Collectors.averagingDouble(s -> s));
+    public <T> Tuple<X, T> mapRight(Function<Y, T> mapper) {
+        return Tuple.of(left, mapper.apply(right));
     }
 
     @Override
     public String toString() {
-        return "Tuple" + "" + "[" + left().toString() + ":" + right().toString() + "]";
+        return left().toString() + ":" + right().toString();
     }
 
 }
