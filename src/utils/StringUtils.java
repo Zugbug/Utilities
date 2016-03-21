@@ -7,12 +7,20 @@ package utils;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  *
  * @author zugbug
  */
 public class StringUtils {
+
+    public static String appendTo2DString(String src, String c) {
+        return appendToSplitted(src, c, "\n");
+    }
+    public static String appendToSplitted(String src, String c,String split) {
+        return Stream.of(src.split(split)).map(s -> s.concat(c)).reduce((a, b) -> a + split + b).orElse("");
+    }
 
     public static String capitalise(String word) {
         return (word.length() > 0) ? Character.toUpperCase(word.charAt(0)) + word.substring(1).toLowerCase() : "";

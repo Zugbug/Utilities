@@ -12,7 +12,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Optional;
 import java.util.Scanner;
+import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.StreamSupport;
 
 /**
@@ -63,6 +65,21 @@ public class EasyFile {
             }
         }
 
+    }
+
+    @FunctionalInterface
+    public interface ThrowingSupplier<T> extends Supplier<T> {
+
+        @Override
+        default T get() {
+            try {
+                return getThrows();
+            } catch (final Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        T getThrows() throws Exception;
     }
 
     @FunctionalInterface

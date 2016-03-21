@@ -68,17 +68,21 @@ public class Tuple<X, Y> {
     }
 
     public static <B> Tuple<List<B>, List<B>> of(B[] l, B[] r) {
-        return of(Arrays.asList(r), Arrays.asList(l));
+        return (Tuple<List<B>, List<B>> )of(Arrays.asList(r), Arrays.asList(l));
     }
 
-    public static <D extends Collection<V>, V> List<Tuple<V, V>> listFromCollectionTuples(Tuple<D, D> t) {
+    public static <D extends Collection<V>, V> List<Tuple<V, V>> listFrom(Tuple<D, D> t) {
         return listFromStreamTuples(t.map((s) -> ((D) s).stream()));
+    }
+    
+    public <D extends Collection<V>, V> List<Tuple<V, V>> asList() {
+        return listFrom((Tuple<D,D>)this);
     }
 
     public static <E extends Stream, V> List<Tuple<V, V>> listFromStreamTuples(Tuple<E, E> t) {
-        return t.operate((E too, E yoo) -> {
-            List<Optional> ti = (List<Optional>) too.map(s -> Optional.of(s)).collect(Collectors.toList());
-            List<Optional> ui = (List<Optional>) yoo.map(s -> Optional.of(s)).collect(Collectors.toList());
+        return t.consume((E too, E yoo) -> {
+            List<Optional> ui = (List<Optional>) too.map(s -> Optional.of(s)).collect(Collectors.toList());
+            List<Optional> ti = (List<Optional>) yoo.map(s -> Optional.of(s)).collect(Collectors.toList());
             int diff;
             List<Optional> smaller = ((diff = ti.size() - ui.size()) < 0) ? ti : ui;
             smaller.addAll(Stream.generate(Optional::empty)
@@ -103,7 +107,7 @@ public class Tuple<X, Y> {
         return this.right;
     }
 
-    public <X, Y, R> R operate(BiFunction<X, Y, R> mapper) {
+    public <X, Y, R> R consume(BiFunction<X, Y, R> mapper) {
         return (R) mapper.apply((X) left, (Y) right);
     }
 
@@ -128,7 +132,7 @@ public class Tuple<X, Y> {
     }
 
     public static <X> double samePairsPercentage(Stream<Tuple<X, X>> tar) {
-        return tar.map(tuple -> tuple.operate((X left, X right) -> (left.equals(right)) ? 1 : 0))
+        return tar.map(tuple -> tuple.consume((X left, X right) -> (left.equals(right)) ? 1 : 0))
             .collect(Collectors.averagingDouble(s -> s));
     }
 
