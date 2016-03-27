@@ -15,58 +15,53 @@ import java.util.stream.Stream;
  */
 public class StringUtils {
 
+    /**
+     * Capitalises the string.
+     *
+     * @param word or sentence to capitalise
+     * @return the word parameter with first letter capital and rest lowercase
+     */
     public static String capitalise(String word) {
         return (word.length() > 0) ? Character.toUpperCase(word.charAt(0)) + word.substring(1).toLowerCase() : "";
     }
 
+    /**
+     * Maps each character of src to be the full-width representation.
+     *
+     * @see https://en.wikipedia.org/wiki/Halfwidth_and_fullwidth_forms
+     * @param src source string
+     * @return string replaces with full-width characters
+     */
     public static String fatString(String src) {
         return src.chars().boxed().map((Integer s) -> (char) s.intValue()).map((Character s) -> (32 < s && s < 126) ? fatChar(s) : s).map(Object::toString).reduce((String a, String b) -> a + b).orElse("");
     }
 
+    /**
+     * Maps the character to a full-width one.
+     *
+     * @param src source char
+     * @return full-width'd source char
+     */
     public static char fatChar(char src) {
         return (char) (src - 'a' + 65365 - 20);
     }
 
+    /**
+     * Capitalises each word in the given string, normalises so that the rest is
+     * lowercase.
+     *
+     * @param src
+     * @return
+     */
     public static String capitaliseEachWord(String src) {
         return (src.length() == 0) ? "" : Arrays.asList(src.split(" ")).stream().filter((String s) -> (s != null && !"".equals(s))).map(StringUtils::capitalise).reduce((String a, String b) -> a + " " + b).orElse("");
     }
 
-    public static float stringMatch(String toString, String toString0) {
-        return stringMatch(toString, toString0, false);
-    }
-
-    public static String flattenToAscii(String string) {
-        StringBuilder sb = new StringBuilder(string.length());
-        for (char c : string.toCharArray()) {
-            if (c <= '\u007F') {
-                sb.append(c);
-            }
-        }
-        return sb.toString();
-    }
-
-    public static float stringMatch(String ths, String tht, boolean lastMatchFail) {
-        ths = flattenToAscii(ths);
-        tht = flattenToAscii(tht);
-        if (lastMatchFail) {
-            if (ths.endsWith(((Character) tht.charAt(tht.length() - 1)).toString())) {
-                return 1;
-            }
-        } else if (ths.startsWith(((Character) tht.charAt(0)).toString())) {
-            return 1;
-        }
-        List<Tuple<Character, Character>> lotoc = Tuple.listFromStreamTuples(Tuple.of(ths, tht)
-                .map((String s) -> s.chars().mapToObj(elem -> (char) elem)));
-        return (float) Tuple.samePairsPercentage(lotoc);
-
-    }
-
     public static String alignLines(String src, String align) {
-        String[] lines = src.split("\n");
-        int splits = 1 + (src.length() - src.replace(align, "").length()) / align.length();
-        final String[][] splittedBits = new String[lines.length][splits]; //lines x lengths
-        for (int i = 0; i < lines.length; i++) {
-            splittedBits[i] = lines[i].split(align);
+        int numberOfSplits = 1 + (src.length() - src.replace(align, "").length()) / align.length();
+        final String[][] splittedBits = new String[src.split("\n").length][numberOfSplits]; //lines x lengths
+        for (int i = 0; i < src.split("\n").length; i++) {
+            splittedBits[i] = src.split("\n")[i].split(align);
         }
         final int[] longests = new int[Stream.of(splittedBits).mapToInt(s -> s.length).max().getAsInt()];
         for (String[] splittedBit : splittedBits) {
@@ -74,21 +69,20 @@ public class StringUtils {
                 longests[j] = Math.max(longests[j], splittedBit[j].length());
             }
         }
-        StringBuilder[] line = Stream.generate(StringBuilder::new).limit(lines.length).toArray((int i) -> new StringBuilder[i]);
+        StringBuilder[] lines = Stream.generate(StringBuilder::new).limit(src.split("\n").length).toArray((i) -> new StringBuilder[i]);
         for (int i = 0; i < splittedBits.length; i++) {//every line
             for (int j = 0; j < splittedBits[i].length; j++) {//every bit
-
-                line[i].append(align).append(pad(splittedBits[i][j], longests[j] - splittedBits[i][j].length()));
+                lines[i].append(align).append(pad(splittedBits[i][j], longests[j] - splittedBits[i][j].length()));
             }
         }
-        return Stream.of(line).map(Object::toString).map(s -> s.substring(align.length())).reduce((a, b) -> a + "\n" + b).orElse("");
+        return Stream.of(lines).map(Object::toString).map(s -> s.substring(align.length())).reduce((a, b) -> a + "\n" + b).orElse("");
     }
 
     public static String pad(String src, int n, char side) {
         if (n == 0) {
             return src;
         }
-        String pad = Stream.generate(() -> " ").limit(n).reduce((a, b) -> a + b).orElse(" ");
+        String pad = Stream.generate(() -> " ").limit(Math.abs(n)).reduce((a, b) -> a + b).orElse(" ");
         switch (Character.toLowerCase(side)) {
             case 'c':
                 src = pad.substring(0, n / 2) + src + pad.substring(n / 2);
@@ -109,10 +103,6 @@ public class StringUtils {
     }
 
     public static String flatten(String[] q) {
-        StringBuilder sb = new StringBuilder();
-        for (String string : q) {
-            sb.append(string);
-        }
-        return sb.toString();
+        return Stream.of(q).reduce((a,b)->a+"\n"+b).orElse("");
     }
 }
