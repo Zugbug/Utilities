@@ -131,11 +131,11 @@ public class Tuple<X, Y> {
         return (Tuple<R, R>) Tuple.of(mapper.apply((T) left), mapper.apply((T) right));
     }
 
-    public <T> Tuple<T, Y> mapLeft(Function<X, T> mapper) {
+    public <T> Tuple<T, Y> mapLeft(Function<? super X,? extends T> mapper) {
         return Tuple.of(mapper.apply(left), right);
     }
 
-    public <T> Tuple<X, T> mapRight(Function<Y, T> mapper) {
+    public <T> Tuple<X, T> mapRight(Function<? super Y, ? extends T> mapper) {
         return Tuple.of(left, mapper.apply(right));
     }
 
