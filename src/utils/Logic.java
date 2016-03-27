@@ -11,6 +11,7 @@ import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -19,6 +20,16 @@ import java.util.stream.Stream;
  * @author zugbug
  */
 public class Logic {
+
+    static public String caesar(String orig, int offset) {
+        Function<Integer,Character> begin = (s)->(Character.isUpperCase(s) ? 'A' : 'a');
+        return orig.chars().map(s -> begin.apply(s) + wrap(s - begin.apply(s), 26, offset)).mapToObj(s -> (char) s).map(Object::toString).reduce((a, b) -> a + b).orElse("");
+    }
+
+    static public int wrap(int src, int range, int offset) {
+        return (range + src + offset) % range;
+
+    }
 
     static public String rot13(String entry) {
         return entry.chars().boxed().map(s -> (char) s.intValue())
@@ -132,7 +143,7 @@ public class Logic {
     }
 
     public static Iterable<Integer> range(int s, int e) {
-        return range(s, e, 1);
+        return range(s, e, (s > e) ? 1 : -1);
     }
 
     public static <T> boolean matchAny(Predicate<? super T> match, T... targets) {
