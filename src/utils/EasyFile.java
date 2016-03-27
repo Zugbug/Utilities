@@ -101,7 +101,6 @@ public class EasyFile {
 
     }
 
-
     @FunctionalInterface
     public interface ThrowingFunction<T, Y> extends Function<T, Y> {
 

@@ -49,6 +49,35 @@ public class StringUtils {
     }
 
 
+
+    public static String pad(String src, int n, char side) {
+        if (n == 0) {
+            return src;
+        }
+        String pad = Stream.generate(() -> " ").limit(n).reduce((a, b) -> a + b).orElse(" ");
+        switch (Character.toLowerCase(side)) {
+            case 'c':
+                src = pad.substring(0, n / 2) + src + pad.substring(n / 2);
+                break;
+            case 'r':
+                src = pad + src;
+                break;
+            case 'l':
+            default:
+                src = src + pad;
+                break;
+        }
+        return src;
+    }
+
+    public static String flatten(String[] q) {
+        StringBuilder sb = new StringBuilder();
+        for (String string : q) {
+            sb.append(string);
+        }
+        return sb.toString();
+    }
+
     public static String alignLines(String src, String align) {
         String[] lines = src.split("\n");
         int splits = 1 + (src.length() - src.replace(align, "").length()) / align.length();
@@ -72,35 +101,9 @@ public class StringUtils {
         return Stream.of(line).map(Object::toString).map(s -> s.substring(align.length())).reduce((a, b) -> a + "\n" + b).orElse("");
     }
 
-    public static String pad(String src, int n, char side) {
-        if (n == 0) {
-            return src;
-        }
-        String pad = Stream.generate(() -> " ").limit(n).reduce((a, b) -> a + b).orElse(" ");
-        switch (Character.toLowerCase(side)) {
-            case 'c':
-                src = pad.substring(0, n / 2) + src + pad.substring(n / 2);
-                break;
-            case 'r':
-                src = pad + src;
-                break;
-            case 'l':
-            default:
-                src = src + pad;
-                break;
-        }
-        return src;
-    }
 
     private static String pad(String string, int i) {
         return pad(string, i, 'l');
     }
 
-    public static String flatten(String[] q) {
-        StringBuilder sb = new StringBuilder();
-        for (String string : q) {
-            sb.append(string);
-        }
-        return sb.toString();
-    }
 }
