@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Scanner;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -39,10 +40,10 @@ public class EasyFile {
     }
 
     @FunctionalInterface
-    public interface ThrowingSupplier<T> extends Supplier<T> {
+    public interface ThrowingSupplier<R> extends Supplier<R> {
 
         @Override
-        default public T get() {
+        default public R get() {
             try {
                 return getThrows();
             } catch (Exception e) {
@@ -50,7 +51,7 @@ public class EasyFile {
             }
         }
 
-        T getThrows() throws Exception;
+        R getThrows() throws Exception;
 
     }
 
@@ -70,25 +71,28 @@ public class EasyFile {
 
     }
 
+
     @FunctionalInterface
-    public interface ThrowingRunnable extends Runnable {
+    public interface ThrowingBiFunction<X, Y, Z> extends BiFunction<X, Y, Z> {
 
         @Override
-        default void run() {
+        default public Z apply(X t, Y u) {
             try {
-                tryRun();
-            } catch (final Exception e) {
+                return applyThrows(t, u);
+            } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         }
 
-        void tryRun() throws Exception;
+        Z applyThrows(X t, Y u) throws Exception;
+
     }
-@FunctionalInterface
+
+    @FunctionalInterface
     public interface ThrowingPredicate<T> extends Predicate<T> {
 
         @Override
-        default public boolean test(T t){
+        default public boolean test(T t) {
             try {
                 return testThrows(t);
             } catch (Exception e) {
@@ -98,13 +102,18 @@ public class EasyFile {
 
         public boolean testThrows(T t) throws Exception;
 
-       
     }
+
+    /**
+     * @see Function
+     * @param <T>
+     * @param <R>
+     */
     @FunctionalInterface
-    public interface ThrowingFunction<T, Y> extends Function<T, Y> {
+    public interface ThrowingFunction<T, R> extends Function<T, R> {
 
         @Override
-        default Y apply(final T elem) {
+        default R apply(final T elem) {
             try {
                 return applyThrows(elem);
             } catch (final Exception e) {
@@ -112,7 +121,7 @@ public class EasyFile {
             }
         }
 
-        Y applyThrows(T elem) throws Exception;
+        R applyThrows(T elem) throws Exception;
     }
 
     public static String read(File file) {
