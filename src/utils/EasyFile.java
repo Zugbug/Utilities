@@ -10,12 +10,12 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Scanner;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 /**
@@ -117,9 +117,13 @@ public class EasyFile {
     }
 
     public static String read(File file) {
-        return StreamSupport.stream(((Iterable<String>) ((ThrowingSupplier<Scanner>) () -> new Scanner(file).useDelimiter("\n"))::get)
-            .spliterator(), false)
+        return stream(file)
             .reduce((a, b) -> a + "\n" + b).orElse("");
+    }
+
+    public static Stream<String> stream(File file) {
+        return StreamSupport.stream(((Iterable<String>) ((ThrowingSupplier<Scanner>) () -> new Scanner(file).useDelimiter("\n"))::get)
+            .spliterator(), false);
     }
 
     public static void append(File tar, String msg) throws FileNotFoundException {
