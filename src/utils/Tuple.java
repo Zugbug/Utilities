@@ -15,6 +15,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.json.simple.JSONObject;
 
 /**
  *
@@ -24,8 +25,16 @@ import java.util.stream.Stream;
  */
 public class Tuple<X, Y> {
 
+   public static JSONObject toJSON(Tuple... ts) {
+        JSONObject ret = new JSONObject();
+        for (Tuple t : ts) {
+            t.consume(ret::put);
+        }
+        return ret;
+    }
+
     public static Tuple<String, String> splitOnce(String src, String split) {
-        return Tuple.of(src.substring(0, src.indexOf(split)), src.substring(1 + src.indexOf(split)));
+        return Tuple.of(src.split(split, 2));
     }
 
     public static Tuple<String, String> split(String src, String split) {
@@ -49,14 +58,14 @@ public class Tuple<X, Y> {
 
     public static <X, Y> List<Tuple<X, Y>> listFrom(Tuple<? extends Collection<X>, ? extends Collection<Y>> t) {
 //        return listFromStreamTuples(t.mapLeft(Collection::stream).mapRight(Collection::stream));
-        return t.map((BiFunction<Collection<X>, Collection<Y>, List<Tuple<X,Y>>>)(Collection<X> t1, Collection<Y> u) -> {
+        return t.map((BiFunction<Collection<X>, Collection<Y>, List<Tuple<X, Y>>>) (Collection<X> t1, Collection<Y> u) -> {
             List<X> lefts = new ArrayList<>(t1);
             List<Y> rights = new ArrayList<>(u);
             int diff;
             Collection smaller = ((diff = rights.size() - lefts.size()) < 0) ? rights : lefts;
             smaller.addAll(Stream.generate(() -> null)
-                .limit(Math.abs(diff))
-                .collect(Collectors.toList()));
+                    .limit(Math.abs(diff))
+                    .collect(Collectors.toList()));
             List<Tuple<X, Y>> ret = new ArrayList();
             for (int i = 0; i < lefts.size(); i++) {
                 ret.add(new Tuple(lefts.get(i), rights.get(i)));
@@ -75,7 +84,7 @@ public class Tuple<X, Y> {
 
     public static <X> double samePairsPercentage(Stream<Tuple<X, X>> tar) {
         return tar.map(tuple -> tuple.map((X left, X right) -> (left.equals(right)) ? 1 : 0))
-            .collect(Collectors.averagingDouble(s -> s));
+                .collect(Collectors.averagingDouble(s -> s));
     }
     private final X left;
     private final Y right;
@@ -90,7 +99,7 @@ public class Tuple<X, Y> {
         if (obj instanceof Tuple) {
             Tuple conv = (Tuple) obj;
             if ((conv.left.equals(this.left) || conv.left.equals(this.right))
-                && (conv.right.equals(this.right) || conv.right.equals(this.left))) {
+                    && (conv.right.equals(this.right) || conv.right.equals(this.left))) {
                 return true;
             }
         }
@@ -116,8 +125,8 @@ public class Tuple<X, Y> {
         return this.right;
     }
 
-    public <X, Y, R> R map(BiFunction<X, Y, R> mapper) {
-        return (R) mapper.apply((X) left, (Y) right);
+    public <X, Y, R> R map(BiFunction<? super X, ? super Y, ? extends R> mapper) {
+        return mapper.apply((X) left, (Y) right);
     }
 
     public <T, R> Tuple<R, R> map(Function<? super T, ? extends R> mapper) {
@@ -127,11 +136,11 @@ public class Tuple<X, Y> {
         return (Tuple<R, R>) Tuple.of(mapper.apply((T) left), mapper.apply((T) right));
     }
 
-    public <T> Tuple<T, Y> mapLeft(Function<X, T> mapper) {
+    public <T> Tuple<T, Y> mapLeft(Function<? super X, ? extends T> mapper) {
         return Tuple.of(mapper.apply(left), right);
     }
 
-    public <T> Tuple<X, T> mapRight(Function<Y, T> mapper) {
+    public <T> Tuple<X, T> mapRight(Function<? super Y, ? extends T> mapper) {
         return Tuple.of(left, mapper.apply(right));
     }
 

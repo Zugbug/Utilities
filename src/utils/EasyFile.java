@@ -11,6 +11,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Scanner;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -39,10 +40,10 @@ public class EasyFile {
     }
 
     @FunctionalInterface
-    public interface ThrowingSupplier<T> extends Supplier<T> {
+    public interface ThrowingSupplier<R> extends Supplier<R> {
 
         @Override
-        default public T get() {
+        default public R get() {
             try {
                 return getThrows();
             } catch (Exception e) {
@@ -50,7 +51,7 @@ public class EasyFile {
             }
         }
 
-        T getThrows() throws Exception;
+        R getThrows() throws Exception;
 
     }
 
@@ -71,18 +72,19 @@ public class EasyFile {
     }
 
     @FunctionalInterface
-    public interface ThrowingRunnable extends Runnable {
+    public interface ThrowingBiFunction<X, Y, Z> extends BiFunction<X, Y, Z> {
 
         @Override
-        default void run() {
+        default public Z apply(X t, Y u) {
             try {
-                tryRun();
-            } catch (final Exception e) {
+                return applyThrows(t, u);
+            } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         }
 
-        void tryRun() throws Exception;
+        Z applyThrows(X t, Y u) throws Exception;
+
     }
 
     @FunctionalInterface
@@ -101,11 +103,16 @@ public class EasyFile {
 
     }
 
+    /**
+     * @see Function
+     * @param <T>
+     * @param <R>
+     */
     @FunctionalInterface
-    public interface ThrowingFunction<T, Y> extends Function<T, Y> {
+    public interface ThrowingFunction<T, R> extends Function<T, R> {
 
         @Override
-        default Y apply(final T elem) {
+        default R apply(final T elem) {
             try {
                 return applyThrows(elem);
             } catch (final Exception e) {
@@ -113,7 +120,7 @@ public class EasyFile {
             }
         }
 
-        Y applyThrows(T elem) throws Exception;
+        R applyThrows(T elem) throws Exception;
     }
 
     public static String read(File file) {
@@ -132,6 +139,10 @@ public class EasyFile {
 
     public static void write(File tar, String msg) throws FileNotFoundException {
         writeStream(new FileOutputStream(tar, false), msg);
+    }
+
+    public static void writeStream(OutputStream out, Object msg) {
+        writeStream(out, msg.toString());
     }
 
     public static void writeStream(OutputStream out, String msg) {
