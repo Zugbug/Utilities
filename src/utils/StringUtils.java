@@ -15,6 +15,13 @@ import java.util.stream.Stream;
  */
 public class StringUtils {
 
+    public static String appendTo2DString(String src, String c) {
+        return appendToSplitted(src, c, "\n");
+    }
+    public static String appendToSplitted(String src, String c,String split) {
+        return Stream.of(src.split(split)).map(s -> s.concat(c)).reduce((a, b) -> a + split + b).orElse("");
+    }
+
     /**
      * Capitalises the string.
      *

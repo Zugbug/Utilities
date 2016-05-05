@@ -10,7 +10,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Scanner;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -71,7 +70,6 @@ public class EasyFile {
 
     }
 
-
     @FunctionalInterface
     public interface ThrowingBiFunction<X, Y, Z> extends BiFunction<X, Y, Z> {
 
@@ -124,7 +122,7 @@ public class EasyFile {
         R applyThrows(T elem) throws Exception;
     }
 
-    public static String read(File file) {
+    public static String read(File file) throws FileNotFoundException {
         return StreamSupport.stream(((Iterable<String>) ((ThrowingSupplier<Scanner>) () -> new Scanner(file).useDelimiter("\n"))::get)
                 .spliterator(), false)
                 .reduce((a, b) -> a + "\n" + b).orElse("");
@@ -136,6 +134,10 @@ public class EasyFile {
 
     public static void write(File tar, String msg) throws FileNotFoundException {
         writeStream(new FileOutputStream(tar, false), msg);
+    }
+
+    public static void writeStream(OutputStream out, Object msg) {
+        writeStream(out, msg.toString());
     }
 
     public static void writeStream(OutputStream out, String msg) {
