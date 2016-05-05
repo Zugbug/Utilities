@@ -16,7 +16,13 @@ public interface ChainableRunnable extends Runnable {
         };
     }
 
-    ;
+    public static ChainableRunnable build(Runnable... rs){
+        ChainableRunnable ret = empty();
+        for (Runnable r : rs) {
+            ret=ret.andThen(r);
+        }
+        return ret;
+    }
 
     default ChainableRunnable andThen(Runnable r) {
         return () -> {

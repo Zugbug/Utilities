@@ -11,5 +11,10 @@
                 <root id="test.test.dir"/>
             </test-roots>
         </data>
+        <spellchecker-wordlist xmlns="http://www.netbeans.org/ns/spellchecker-wordlist/1">
+            <word>iterable</word>
+            <word>varargs</word>
+            <word>width'd</word>
+        </spellchecker-wordlist>
     </configuration>
 </project>

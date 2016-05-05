@@ -5,8 +5,6 @@
  */
 package utils;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -22,7 +20,7 @@ import java.util.stream.Stream;
 public class Logic {
 
     static public String caesar(String orig, int offset) {
-        Function<Integer,Character> begin = (s)->(Character.isUpperCase(s) ? 'A' : 'a');
+        Function<Integer, Character> begin = (s) -> (Character.isUpperCase(s) ? 'A' : 'a');
         return orig.chars().map(s -> begin.apply(s) + wrap(s - begin.apply(s), 26, offset)).mapToObj(s -> (char) s).map(Object::toString).reduce((a, b) -> a + b).orElse("");
     }
 
@@ -150,13 +148,36 @@ public class Logic {
         return findAny(match, targets).isPresent();
     }
 
-    public static <T> Optional<T> findAny(Predicate<? super T> match, T... targets) {
+    /**
+     * Searches the iterable sequentially for the first instance where the
+     * predicate returns true. Returns an optional of that value.
+     *
+     * @param <T> type of the value contained in the iterable
+     * @param matcher predicate used to find the value
+     * @param targets any iterable to be searched for the value
+     * @return the wrapped value if present, otherwise empty optional
+     */
+    public static <T> Optional<T> findAny(Predicate<? super T> matcher, Iterable<T> targets) {
         for (T item : targets) {
-            if (match.test(item)) {
+            if (matcher.test(item)) {
                 return Optional.of(item);
             }
         }
         return Optional.empty();
+    }
+
+    /**
+     * Searches the iterable sequentially for the first instance where the
+     * predicate returns true. Returns an optional of that value.
+     *
+     * @see Logic#findAny(java.util.function.Predicate, java.lang.Iterable) 
+     * @param <T> type of the value contained in the iterable
+     * @param matcher predicate used to find the value
+     * @param targets varargs array to be searched
+     * @return the wrapped value if present, otherwise empty optional
+     */
+    public static <T> Optional<T> findAny(Predicate<? super T> matcher, T... targets) {
+        return findAny(matcher, Arrays.asList(targets));
     }
 
     public static boolean matchEither(String tar, String... matches) {
