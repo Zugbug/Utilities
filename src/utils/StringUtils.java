@@ -7,6 +7,7 @@ package utils;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 /**
@@ -68,7 +69,7 @@ public class StringUtils {
         int numberOfSplits = 1 + (src.length() - src.replace(align, "").length()) / align.length();
         final String[][] splittedBits = new String[src.split("\n").length][numberOfSplits]; //lines x lengths
         for (int i = 0; i < src.split("\n").length; i++) {
-            splittedBits[i] = src.split("\n")[i].split(align);
+            splittedBits[i] = src.split("\n")[i].split(Pattern.quote(align));
         }
         final int[] longests = new int[Stream.of(splittedBits).mapToInt(s -> s.length).max().getAsInt()];
         for (String[] splittedBit : splittedBits) {
