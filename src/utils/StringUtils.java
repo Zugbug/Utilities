@@ -5,8 +5,17 @@
  */
 package utils;
 
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBuffer;
+import java.awt.image.Raster;
+import java.io.IOException;
 import java.util.Arrays;
-import java.util.List;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
@@ -15,11 +24,90 @@ import java.util.stream.Stream;
  */
 public class StringUtils {
 
+    public static void main(String[] args) throws IOException {
+        String render = Stream.of("THAT'S A BIG FONT".split("\n"))
+            .flatMap(Stream::of).map(s -> renderBigLetters(s, 25, 2)).reduce((a, b) -> a + "\n\n\n\n" + b).orElse("");
+
+        System.out.println(render);
+        System.out.println("");
+        System.out.println("");
+        System.out.println("");
+        render = Stream.of("...FOR YOU".split("\n"))
+            .flatMap(Stream::of).map(s -> renderBigLetters(s, 20, 1)).reduce((a, b) -> a + "\n\n\n\n" + b).orElse("");
+        System.out.println(StringUtils.preppendTo2DString(render, "\t\t\t\t\t\t"));
+
+    }
+
+    public static String renderBigLetters(String src, int scale, int ramp) {
+        Font f = new Font("Comic Sans MS", Font.PLAIN, 256);
+        char[] colourRamp;
+        switch (ramp) {
+            case 0:
+                colourRamp = " .xX".toCharArray();
+                break;
+            case 1:
+                colourRamp = " ░▒▓█".toCharArray();
+                break;
+            case 2:
+                colourRamp = " .:-=+*#%@".toCharArray();
+                break;
+            case 3:
+                colourRamp = new StringBuilder("$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`'. ").reverse().toString().toCharArray();
+                break;
+            default:
+                colourRamp = " x".toCharArray();
+        }
+        BufferedImage img = new BufferedImage(1, 1, BufferedImage.TYPE_BYTE_GRAY);
+        Graphics2D g = img.createGraphics();
+        Rectangle2D w = g.getFontMetrics(f).getStringBounds(src, g);
+        img = new BufferedImage((int) w.getWidth(), (int) w.getHeight(), BufferedImage.TYPE_BYTE_GRAY);
+        g = img.createGraphics();
+        g.setColor(Color.WHITE);
+        g.setFont(f);
+        g.drawString(src, 0, (int) w.getHeight());
+//        ImageIO.write(img, "png", new File("image.png"));
+        Image scaled = img.getScaledInstance(-1, scale, Image.SCALE_SMOOTH);
+        scaled.flush();
+        int scaled_X = scaled.getWidth(null);
+        int scaled_Y = scaled.getHeight(null);
+        BufferedImage small = new BufferedImage(scaled_X, scaled_Y, BufferedImage.TYPE_BYTE_GRAY);
+        small.getGraphics().drawImage(scaled, 0, 0, null);
+        small.flush();
+//        ImageIO.write(small, "png", new File("scaled.png"));
+        Raster data = small.getData();
+        DataBuffer buffer = data.getDataBuffer();
+        StringBuilder sb = new StringBuilder();
+        int[][] matrix = new int[scaled_Y][scaled_X];
+        for (int j = 0; j < buffer.getSize(); j++) {
+            int nu = buffer.getElem(j);
+            matrix[j / scaled_X][j % scaled_X] = nu;
+        }
+        int range = Stream.of(matrix).flatMapToInt(IntStream::of).max().getAsInt() - Stream.of(matrix).flatMapToInt(IntStream::of).min().getAsInt();
+        float rangeSteps = (float) range / (colourRamp.length - 1);
+        for (int[] matrix1 : matrix) {
+            for (int y = 0; y < matrix1.length; y++) {
+                sb.append(colourRamp[(int) Math.round(matrix1[y] / rangeSteps)]);
+            }
+            sb.append("\n");
+        }
+        return Stream.of(sb.toString().split("\n")).filter(s -> !s.replace(" ", "").isEmpty()).reduce((a, b) -> a + "\n" + b).orElse("");
+
+    }
+
     public static String appendTo2DString(String src, String c) {
         return appendToSplitted(src, c, "\n");
     }
-    public static String appendToSplitted(String src, String c,String split) {
+
+    public static String appendToSplitted(String src, String c, String split) {
         return Stream.of(src.split(split)).map(s -> s.concat(c)).reduce((a, b) -> a + split + b).orElse("");
+    }
+
+    public static String preppendToSplitted(String src, String c, String split) {
+        return Stream.of(src.split(split)).map(s -> c.concat(s)).reduce((a, b) -> a + split + b).orElse("");
+    }
+
+    public static String preppendTo2DString(String src, String c) {
+        return preppendToSplitted(src, c, "\n");
     }
 
     /**
@@ -110,6 +198,6 @@ public class StringUtils {
     }
 
     public static String flatten(String[] q) {
-        return Stream.of(q).reduce((a,b)->a+"\n"+b).orElse("");
+        return Stream.of(q).reduce((a, b) -> a + "\n" + b).orElse("");
     }
 }

@@ -18,9 +18,11 @@ import java.util.stream.Collectors;
 public class Tokeniser {
 
     public static void main(String[] args) {
-        String things = "happy \"rabbit ate some berries\"";
-        List t = Tokeniser.tokenise(things, ' ');
-        System.err.println(t);
+//        String things = "happy \"rabbit ate some berries\"";
+//        List t = Tokeniser.tokenise(things, ' ');
+//        System.err.println(t);
+
+
     }
 
     static List<StringBuilder> tokenise(String src, char delim) {
