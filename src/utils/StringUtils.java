@@ -5,18 +5,32 @@
  */
 package utils;
 
+import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBuffer;
 import java.awt.image.Raster;
+import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Stack;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.BinaryOperator;
+import java.util.function.Supplier;
+import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import javax.imageio.ImageIO;
 
 /**
  *
@@ -24,74 +38,101 @@ import java.util.stream.Stream;
  */
 public class StringUtils {
 
-    public static void main(String[] args) throws IOException {
-        String render = Stream.of("THAT'S A BIG FONT".split("\n"))
-            .flatMap(Stream::of).map(s -> renderBigLetters(s, 25, 2)).reduce((a, b) -> a + "\n\n\n\n" + b).orElse("");
-
-        System.out.println(render);
-        System.out.println("");
-        System.out.println("");
-        System.out.println("");
-        render = Stream.of("...FOR YOU".split("\n"))
-            .flatMap(Stream::of).map(s -> renderBigLetters(s, 20, 1)).reduce((a, b) -> a + "\n\n\n\n" + b).orElse("");
-        System.out.println(StringUtils.preppendTo2DString(render, "\t\t\t\t\t\t"));
-
+    private static String spaces(int n) {
+        return Stream.generate(() -> " ").limit(Math.abs(n)).reduce((a, b) -> a + b).orElse(" ");
     }
 
-    public static String renderBigLetters(String src, int scale, int ramp) {
-        Font f = new Font("Comic Sans MS", Font.PLAIN, 256);
-        char[] colourRamp;
-        switch (ramp) {
-            case 0:
-                colourRamp = " .xX".toCharArray();
-                break;
-            case 1:
-                colourRamp = " ░▒▓█".toCharArray();
-                break;
-            case 2:
-                colourRamp = " .:-=+*#%@".toCharArray();
-                break;
-            case 3:
-                colourRamp = new StringBuilder("$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`'. ").reverse().toString().toCharArray();
-                break;
-            default:
-                colourRamp = " x".toCharArray();
+    Font f = new Font("monospaced", Font.PLAIN, 256);
+
+    Character[][] ramps = new Character[][]{
+        new StringBuilder("$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`'. ").toString().chars().mapToObj(s -> (char) s).toArray(Character[]::new),
+        new StringBuilder(" .:xX").reverse().toString().chars().mapToObj(s -> (char) s).toArray(Character[]::new),
+        new StringBuilder(" .:░▒▓█").reverse().toString().chars().mapToObj(s -> (char) s).toArray(Character[]::new),
+        new StringBuilder(" .:-=+*#%@").reverse().toString().chars().mapToObj(s -> (char) s).toArray(Character[]::new)
+
+    };
+
+    public static void main(String[] args) throws IOException {
+//        String ret = blockFormat(20, "Hello world this is a long letter".split(" "));
+//        System.out.println(ret);
+        System.err.println(floatApart("1 2 3", 6));
+    }
+
+    public static String floatApart(String src, int maxWidth) {
+        int extra;
+        String[] bits = src.split(" ");
+        if ((extra = maxWidth - flatten(bits).length()) <= 0) {
+            return src;
         }
+        System.err.println(extra);
+        int amt = extra / (bits.length - 1);
+        System.err.println(amt);
+        return reduce(bits, new BinaryOperator<String>() {
+            int tot = extra;
+
+            @Override
+            public String apply(String t, String u) {
+                return t + spaces(((tot -= amt) >= amt) ? amt : tot) + u;
+            }
+        });
+    }
+
+    public static String reduce(String[] arr, BinaryOperator<String> fun) {
+        String last = arr[0];
+        for (int i = 1; i < arr.length; i++) {
+            String next = arr[i];
+            last = fun.apply(last, next);
+        }
+        return last;
+    }
+
+    public static String join(String j, String a, String b) {
+        return (!a.isEmpty())
+                ? (!b.isEmpty())
+                        ? a + j + b
+                        : a
+                : (!b.isEmpty())
+                        ? b
+                        : "";
+    }
+
+    public static String blockFormat(int maxCharWidth, String... src) {
+        StringBuilder sb = new StringBuilder();
+
+        return sb.toString();
+    }
+
+    public static double analyseCharDensity(char c, Font f) {
+        Canvas canvas = new Canvas();
+        FontMetrics size = canvas.getFontMetrics(f);
+        if (size.charWidth(c) == 0 || size.getAscent() == 0) {
+            return 0;
+        }
+        BufferedImage bi = new BufferedImage(size.charWidth('W'), size.getAscent(), BufferedImage.TYPE_BYTE_GRAY);
+        Graphics g = bi.getGraphics();
+        g.setColor(Color.WHITE);
+        g.fillRect(0, 0, bi.getWidth(), bi.getHeight());
+        g.setColor(Color.BLACK);
+        g.setFont(f);
+        g.drawString("" + c, 0, size.getAscent());
+        bi.flush();
+        DataBuffer data = bi.getData().getDataBuffer();
+        return Stream.iterate(0, s -> s + 1).limit(data.getSize()).mapToInt(data::getElem).average().getAsDouble();
+    }
+
+    public static String renderBigLetters(String src, int scale, Character... ramp) {
+        Font f = new Font("Comic Sans MS", Font.PLAIN, 256);
         BufferedImage img = new BufferedImage(1, 1, BufferedImage.TYPE_BYTE_GRAY);
         Graphics2D g = img.createGraphics();
         Rectangle2D w = g.getFontMetrics(f).getStringBounds(src, g);
-        img = new BufferedImage((int) w.getWidth(), (int) w.getHeight(), BufferedImage.TYPE_BYTE_GRAY);
+        img = new BufferedImage((int) w.getWidth(), (int) (w.getHeight() - w.getY()), BufferedImage.TYPE_BYTE_GRAY);
         g = img.createGraphics();
         g.setColor(Color.WHITE);
+        g.fillRect(0, 0, img.getWidth(), img.getHeight());
+        g.setColor(Color.BLACK);
         g.setFont(f);
-        g.drawString(src, 0, (int) w.getHeight());
-//        ImageIO.write(img, "png", new File("image.png"));
-        Image scaled = img.getScaledInstance(-1, scale, Image.SCALE_SMOOTH);
-        scaled.flush();
-        int scaled_X = scaled.getWidth(null);
-        int scaled_Y = scaled.getHeight(null);
-        BufferedImage small = new BufferedImage(scaled_X, scaled_Y, BufferedImage.TYPE_BYTE_GRAY);
-        small.getGraphics().drawImage(scaled, 0, 0, null);
-        small.flush();
-//        ImageIO.write(small, "png", new File("scaled.png"));
-        Raster data = small.getData();
-        DataBuffer buffer = data.getDataBuffer();
-        StringBuilder sb = new StringBuilder();
-        int[][] matrix = new int[scaled_Y][scaled_X];
-        for (int j = 0; j < buffer.getSize(); j++) {
-            int nu = buffer.getElem(j);
-            matrix[j / scaled_X][j % scaled_X] = nu;
-        }
-        int range = Stream.of(matrix).flatMapToInt(IntStream::of).max().getAsInt() - Stream.of(matrix).flatMapToInt(IntStream::of).min().getAsInt();
-        float rangeSteps = (float) range / (colourRamp.length - 1);
-        for (int[] matrix1 : matrix) {
-            for (int y = 0; y < matrix1.length; y++) {
-                sb.append(colourRamp[(int) Math.round(matrix1[y] / rangeSteps)]);
-            }
-            sb.append("\n");
-        }
-        return Stream.of(sb.toString().split("\n")).filter(s -> !s.replace(" ", "").isEmpty()).reduce((a, b) -> a + "\n" + b).orElse("");
-
+        g.drawString(src, 0, (int) (w.getHeight()));
+        return imageToText(scale, img, ramp);
     }
 
     public static String appendTo2DString(String src, String c) {
@@ -177,7 +218,7 @@ public class StringUtils {
         if (n == 0) {
             return src;
         }
-        String pad = Stream.generate(() -> " ").limit(Math.abs(n)).reduce((a, b) -> a + b).orElse(" ");
+        String pad = StringUtils.spaces(n);
         switch (Character.toLowerCase(side)) {
             case 'c':
                 src = pad.substring(0, n / 2) + src + pad.substring(n / 2);
@@ -198,6 +239,58 @@ public class StringUtils {
     }
 
     public static String flatten(String[] q) {
-        return Stream.of(q).reduce((a, b) -> a + "\n" + b).orElse("");
+        return Stream.of(q).collect(StringBuilder::new, StringBuilder::append, StringBuilder::append).toString();
+    }
+
+    private static String imageToText(int scale, Image img, Character... ramps) {
+        Image scaled = img.getScaledInstance(scale, -1, Image.SCALE_SMOOTH);
+        scaled = scaled.getScaledInstance(scale, (int) (0.53 * scale), Image.SCALE_SMOOTH);
+        scaled.flush();
+        int sizeX = scaled.getWidth(null);
+        int sizeY = (int) (scaled.getHeight(null));
+        BufferedImage small = new BufferedImage(sizeX, sizeY, BufferedImage.TYPE_BYTE_GRAY);
+        small.getGraphics().drawImage(scaled, 0, 0, null);
+        small.flush();
+        Raster data = small.getData();
+        DataBuffer buffer = data.getDataBuffer();
+        StringBuilder sb = new StringBuilder();
+        int[][] matrix = new int[sizeY][sizeX];
+        for (int j = 0; j < buffer.getSize(); j++) {
+            int nu = buffer.getElem(j);
+            matrix[j / sizeX][j % sizeX] = nu;
+        }
+        int max = Stream.of(matrix).flatMapToInt(IntStream::of).max().getAsInt();
+        int min = Stream.of(matrix).flatMapToInt(IntStream::of).min().getAsInt();
+        int range = 1 + max
+                - min;
+        for (int[] matrix1 : matrix) {
+            for (int y = 0; y < matrix1.length; y++) {
+                sb.append(
+                        ramps[(int) ((matrix1[y] - min) * ((float) (ramps.length) / (range)))]
+                );
+
+            }
+            sb.append("\n");
+        }
+        try {
+            ImageIO.write(small, "png", new File("/home/zugbug/out.png"));
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+        return sb.toString();
+    }
+
+    private static <T> List<T> posterise(T[] ramp, int max) {
+        List<T> t = Arrays.asList(ramp);
+        if (ramp.length <= max) {
+            return t;
+        }
+        double step = (double) ramp.length / max;
+        List<T> ret = new ArrayList<>();
+        for (double i = 0; i < max * step; i += step) {
+            System.err.println(t.get((int) Math.round(i)) + ":" + i);
+            ret.add(t.get((int) Math.round(i)));
+        }
+        return ret;
     }
 }

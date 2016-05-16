@@ -4,6 +4,8 @@
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
             <file>file:/home/zugbug/code/Utilities/src/utils/StringUtils.java</file>
+            <file>file:/home/zugbug/code/Utilities/src/utils/Tokeniser.java</file>
+            <file>file:/home/zugbug/code/Utilities/src/utils/ChainableRunnable.java</file>
         </group>
     </open-files>
 </project-private>
