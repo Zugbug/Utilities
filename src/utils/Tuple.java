@@ -25,7 +25,11 @@ import org.json.simple.JSONObject;
  */
 public class Tuple<X, Y> {
 
-   public static JSONObject toJSON(Tuple... ts) {
+    public static <T, Y> JSONObject toJSON(T a, Y b) {
+        return Tuple.toJSON(Tuple.of(a, b));
+    }
+
+    public static JSONObject toJSON(Tuple... ts) {
         JSONObject ret = new JSONObject();
         for (Tuple t : ts) {
             t.consume(ret::put);
@@ -64,8 +68,8 @@ public class Tuple<X, Y> {
             int diff;
             Collection smaller = ((diff = rights.size() - lefts.size()) < 0) ? rights : lefts;
             smaller.addAll(Stream.generate(() -> null)
-                    .limit(Math.abs(diff))
-                    .collect(Collectors.toList()));
+                .limit(Math.abs(diff))
+                .collect(Collectors.toList()));
             List<Tuple<X, Y>> ret = new ArrayList();
             for (int i = 0; i < lefts.size(); i++) {
                 ret.add(new Tuple(lefts.get(i), rights.get(i)));
@@ -84,7 +88,7 @@ public class Tuple<X, Y> {
 
     public static <X> double samePairsPercentage(Stream<Tuple<X, X>> tar) {
         return tar.map(tuple -> tuple.map((X left, X right) -> (left.equals(right)) ? 1 : 0))
-                .collect(Collectors.averagingDouble(s -> s));
+            .collect(Collectors.averagingDouble(s -> s));
     }
     private final X left;
     private final Y right;
@@ -99,7 +103,7 @@ public class Tuple<X, Y> {
         if (obj instanceof Tuple) {
             Tuple conv = (Tuple) obj;
             if ((conv.left.equals(this.left) || conv.left.equals(this.right))
-                    && (conv.right.equals(this.right) || conv.right.equals(this.left))) {
+                && (conv.right.equals(this.right) || conv.right.equals(this.left))) {
                 return true;
             }
         }

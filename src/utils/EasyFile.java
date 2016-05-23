@@ -134,18 +134,26 @@ public class EasyFile {
     }
 
     public static void append(File tar, String msg) throws FileNotFoundException {
-        writeStream(new FileOutputStream(tar, true), msg);
+        printStream(new FileOutputStream(tar, true), msg);
     }
 
     public static void write(File tar, String msg) throws FileNotFoundException {
-        writeStream(new FileOutputStream(tar, false), msg);
+        printStream(new FileOutputStream(tar, false), msg);
     }
 
-    public static void writeStream(OutputStream out, Object msg) {
-        writeStream(out, msg.toString());
+    public static void printStream(OutputStream out, Object msg) {
+        printStream(out, msg.toString());
     }
 
-    public static void writeStream(OutputStream out, String msg) {
+    public static void printlnStream(OutputStream out, Object msg) {
+        printStream(out, msg.toString() + "\n");
+    }
+
+    public static void printlnStream(OutputStream out, String msg) {
+        printStream(out, msg + "\n");
+    }
+
+    public static void printStream(OutputStream out, String msg) {
         msg.chars().boxed().map(s -> (char) s.intValue()).forEach((ThrowingConsumer<Character>) out::write);
     }
 
