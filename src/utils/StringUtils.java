@@ -27,6 +27,7 @@ import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
 import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -44,7 +45,7 @@ public class StringUtils {
 
     Font f = new Font("monospaced", Font.PLAIN, 256);
 
-    Character[][] ramps = new Character[][]{
+    static Character[][] ramps = new Character[][]{
         new StringBuilder("$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`'. ").toString().chars().mapToObj(s -> (char) s).toArray(Character[]::new),
         new StringBuilder(" .:xX").reverse().toString().chars().mapToObj(s -> (char) s).toArray(Character[]::new),
         new StringBuilder(" .:░▒▓█").reverse().toString().chars().mapToObj(s -> (char) s).toArray(Character[]::new),
@@ -53,28 +54,52 @@ public class StringUtils {
     };
 
     public static void main(String[] args) throws IOException {
-//        String ret = blockFormat(20, "Hello world this is a long letter".split(" "));
-//        System.out.println(ret);
-        System.err.println(floatApart("1 2 3", 6));
+//        String[] chars = "STOP RUN FINISH END EXECUTE LOAD SAVE COPY CUT".split(" ");
+//        String ret;
+//        for (int i = 20; i > 5; i--) {
+//            System.out.println(i);
+//            ret = blockFormat(i, chars);
+//            System.out.println(ret);
+//            System.out.println("");
+//            System.out.println("");
+//        }
+        Image src = ImageIO.read(new File("doge.jpeg"));
+        String out = imageToText(80, src, ramps[1]);
+        System.err.println(out);
     }
 
-    public static String floatApart(String src, int maxWidth) {
+    public static String blockFormat(int maxCharWidth, String... src) {
+        List<String> ret = new ArrayList<>();
+        String sb = "";
+        for (String string : src) {
+            if (sb.length() + 1 + string.length() > maxCharWidth) {
+                ret.add(formatJustify(sb, maxCharWidth));
+                sb = string;
+            } else {
+                sb = join(" ", sb, string);
+            }
+        }
+        if (!sb.isEmpty()) {
+            ret.add(formatJustify(sb, maxCharWidth));
+        }
+        return ret.stream().reduce((a, b) -> a + "\n" + b).orElse("");
+    }
+
+    public static <T> Stream<T> everyNthElement(int nth, T... ts) {
+        return (nth < 1) ? Stream.of(ts) : Stream.iterate(0, s -> 1 + s).limit(ts.length / nth).map(s -> nth * s).map(s -> ts[s]);
+    }
+
+    public static String formatJustify(String src, int maxWidth) {
         int extra;
         String[] bits = src.split(" ");
-        if ((extra = maxWidth - flatten(bits).length()) <= 0) {
+        if (bits.length == 1 || (extra = maxWidth - flatten(bits).length()) <= 0) {
             return src;
         }
-        System.err.println(extra);
-        int amt = extra / (bits.length - 1);
-        System.err.println(amt);
-        return reduce(bits, new BinaryOperator<String>() {
-            int tot = extra;
-
-            @Override
-            public String apply(String t, String u) {
-                return t + spaces(((tot -= amt) >= amt) ? amt : tot) + u;
-            }
-        });
+        String ret = reduce(bits, (String t, String u) -> t + spaces((extra) / (bits.length - 1)) + u);
+        if (ret.length() < maxWidth) {
+            ret = ret.replaceFirst(" ", "  ");
+        }
+        return ret;
     }
 
     public static String reduce(String[] arr, BinaryOperator<String> fun) {
@@ -94,12 +119,6 @@ public class StringUtils {
                 : (!b.isEmpty())
                         ? b
                         : "";
-    }
-
-    public static String blockFormat(int maxCharWidth, String... src) {
-        StringBuilder sb = new StringBuilder();
-
-        return sb.toString();
     }
 
     public static double analyseCharDensity(char c, Font f) {
@@ -193,7 +212,7 @@ public class StringUtils {
         return (src.length() == 0) ? "" : Arrays.asList(src.split(" ")).stream().filter((String s) -> (s != null && !"".equals(s))).map(StringUtils::capitalise).reduce((String a, String b) -> a + " " + b).orElse("");
     }
 
-    public static String alignLines(String src, String align) {
+    public static String formatAlign(String src, String align) {
         int numberOfSplits = 1 + (src.length() - src.replace(align, "").length()) / align.length();
         final String[][] splittedBits = new String[src.split("\n").length][numberOfSplits]; //lines x lengths
         for (int i = 0; i < src.split("\n").length; i++) {
@@ -208,13 +227,13 @@ public class StringUtils {
         StringBuilder[] lines = Stream.generate(StringBuilder::new).limit(src.split("\n").length).toArray((i) -> new StringBuilder[i]);
         for (int i = 0; i < splittedBits.length; i++) {//every line
             for (int j = 0; j < splittedBits[i].length; j++) {//every bit
-                lines[i].append(align).append(pad(splittedBits[i][j], longests[j] - splittedBits[i][j].length()));
+                lines[i].append(align).append(StringUtils.format(splittedBits[i][j], longests[j] - splittedBits[i][j].length()));
             }
         }
         return Stream.of(lines).map(Object::toString).map(s -> s.substring(align.length())).reduce((a, b) -> a + "\n" + b).orElse("");
     }
 
-    public static String pad(String src, int n, char side) {
+    public static String format(String src, int n, char side) {
         if (n == 0) {
             return src;
         }
@@ -234,12 +253,16 @@ public class StringUtils {
         return src;
     }
 
-    private static String pad(String string, int i) {
-        return pad(string, i, 'l');
+    private static String format(String string, int i) {
+        return format(string, i, 'l');
+    }
+
+    public static String flatten(List<String> q) {
+        return q.stream().collect(StringBuilder::new, StringBuilder::append, StringBuilder::append).toString();
     }
 
     public static String flatten(String[] q) {
-        return Stream.of(q).collect(StringBuilder::new, StringBuilder::append, StringBuilder::append).toString();
+        return flatten(Arrays.asList(q));
     }
 
     private static String imageToText(int scale, Image img, Character... ramps) {

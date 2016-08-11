@@ -18,15 +18,16 @@ import java.util.stream.Collectors;
 public class Tokeniser {
 
     public static void main(String[] args) {
-//        String things = "happy \"rabbit ate some berries\"";
-//        List t = Tokeniser.tokenise(things, ' ');
-//        System.err.println(t);
-
+        String things = "<html style=\"bold\" type=\"rough\" and red> </html>";
+        List t = Tokeniser.tokenise(things);
+        System.err.println(t);
 
     }
-
-    static List<StringBuilder> tokenise(String src, char delim) {
-        if (delim == 0) {
+    public static List<String> tokenise(String src){
+        return tokenise(src, ' ').stream().map(Object::toString).collect(Collectors.toList());
+    }
+    public static List<StringBuilder> tokenise(String src, char del) {
+        if (del == 0) {
             return Arrays.asList(new StringBuilder(src));
         }
         List<StringBuilder> ret = new ArrayList<>();
@@ -34,10 +35,10 @@ public class Tokeniser {
         for (int i = 0; i < src.toCharArray().length; i++) {
             char c = src.toCharArray()[i];
             if (c == '"') {
-                int skip = src.lastIndexOf('"') + 1;
-                ret.addAll(tokenise(src.substring(i + 1, skip - 1)));
+                int skip = src.substring(i + 1).indexOf('"') + 1;
+                buf.append(src.substring(i + 1, i + skip));
                 i += skip;
-            } else if (c == delim) {
+            } else if (c == del) {
                 ret.add(buf);
                 buf = new StringBuilder();
             } else {
@@ -48,10 +49,6 @@ public class Tokeniser {
             ret.add(buf);
         }
         return ret;
-    }
-
-    private static Collection<? extends StringBuilder> tokenise(String substring) {
-        return tokenise(substring, (char) 0);
     }
 
 }

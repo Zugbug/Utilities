@@ -123,29 +123,37 @@ public class EasyFile {
         R applyThrows(T elem) throws Exception;
     }
 
-    public static String read(File file) {
-        return stream(file)
-            .reduce((a, b) -> a + "\n" + b).orElse("");
+    public static String read(File file) throws FileNotFoundException {
+        return stream(new Scanner(file))
+                .reduce((a, b) -> a + "\n" + b).orElse("");
     }
 
-    public static Stream<String> stream(File file) {
-        return StreamSupport.stream(((Iterable<String>) ((ThrowingSupplier<Scanner>) () -> new Scanner(file).useDelimiter("\n"))::get)
-            .spliterator(), false);
+    public static Stream<String> stream(Scanner scanner) {
+        return StreamSupport.stream(((Iterable<String>) ((ThrowingSupplier<Scanner>) () -> scanner)::get)
+                .spliterator(), false);
     }
 
     public static void append(File tar, String msg) throws FileNotFoundException {
-        writeStream(new FileOutputStream(tar, true), msg);
+        printStream(new FileOutputStream(tar, true), msg);
     }
 
     public static void write(File tar, String msg) throws FileNotFoundException {
-        writeStream(new FileOutputStream(tar, false), msg);
+        printStream(new FileOutputStream(tar, false), msg);
     }
 
-    public static void writeStream(OutputStream out, Object msg) {
-        writeStream(out, msg.toString());
+    public static void printStream(OutputStream out, Object msg) {
+        printStream(out, msg.toString());
     }
 
-    public static void writeStream(OutputStream out, String msg) {
+    public static void printlnStream(OutputStream out, Object msg) {
+        printStream(out, msg.toString() + "\n");
+    }
+
+    public static void printlnStream(OutputStream out, String msg) {
+        printStream(out, msg + "\n");
+    }
+
+    public static void printStream(OutputStream out, String msg) {
         msg.chars().boxed().map(s -> (char) s.intValue()).forEach((ThrowingConsumer<Character>) out::write);
     }
 
