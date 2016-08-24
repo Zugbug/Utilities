@@ -124,8 +124,8 @@ public class EasyFile {
     }
 
     public static String read(File file) throws FileNotFoundException {
-        return stream(new Scanner(file))
-                .reduce((a, b) -> a + "\n" + b).orElse("");
+        return stream(new Scanner(file).useDelimiter("\n"))
+                .reduce((a, b) -> a  +"\n"+ b).orElse("");
     }
 
     public static Stream<String> stream(Scanner scanner) {
