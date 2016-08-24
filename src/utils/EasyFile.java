@@ -123,13 +123,13 @@ public class EasyFile {
         R applyThrows(T elem) throws Exception;
     }
 
-    public static String read(File file) {
-        return stream(file)
+    public static String read(File file) throws FileNotFoundException {
+        return stream(new Scanner(file))
             .reduce((a, b) -> a + "\n" + b).orElse("");
     }
 
-    public static Stream<String> stream(File file) {
-        return StreamSupport.stream(((Iterable<String>) ((ThrowingSupplier<Scanner>) () -> new Scanner(file).useDelimiter("\n"))::get)
+    public static Stream<String> stream(Scanner src) {
+        return StreamSupport.stream(((Iterable<String>) ((Supplier<Scanner>) () -> src.useDelimiter("\n"))::get)
             .spliterator(), false);
     }
 
