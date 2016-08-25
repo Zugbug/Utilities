@@ -20,45 +20,76 @@ import org.json.simple.JSONObject;
 /**
  *
  * @author zugbug
- * @param <X> Left element type
- * @param <Y> Right element type
+ * @param <L> Left element type
+ * @param <R> Right element type
  */
-public class Tuple<X, Y> {
+public class Tuple<L, R> {
 
-    public static <T, Y> JSONObject toJSON(T a, Y b) {
-        return Tuple.toJSON(Tuple.of(a, b));
+    /**
+     * Makes a JSONObject with key a and value b.
+     *
+     * @param <K> type for key
+     * @param <V> type for value
+     * @param key the key
+     * @param value the value
+     * @return
+     */
+    public static <K, V> JSONObject toJSON(K key, V value) {
+        return Tuple.toJSON(Tuple.of(key, value));
     }
 
-    public static JSONObject toJSON(Tuple... ts) {
+    /**
+     * Creates a complex JSONObject from multiple Tuples, with each Tuple's left
+     * being the key and right being the value.
+     *
+     * @param tuples the pairs of key-values from which this JSONObject is
+     * created
+     * @return the JSONObject
+     */
+    public static JSONObject toJSON(Tuple... tuples) {
         JSONObject ret = new JSONObject();
-        for (Tuple t : ts) {
+        for (Tuple t : tuples) {
             t.consume(ret::put);
         }
         return ret;
     }
 
-    public static Tuple<String, String> splitOnce(String src, String split) {
+    /**
+     * Splits the string into an array with length of 2, and assigns the first
+     * element to be the key and second to be the value.
+     *
+     * @param src string to split
+     * @param split string which separates the first element from the second
+     * @return
+     */
+    public static Tuple<String, String> split(String src, String split) {
         return Tuple.of(src.split(split, 2));
     }
-
-    public static Tuple<String, String> split(String src, String split) {
-        return Tuple.of(src.split(split));
+    /**
+     * Creates a tuple from two elements.
+     * @param <L> type for the left element
+     * @param <R> type for the right element
+     * @param left element
+     * @param right element
+     * @return 
+     */
+    public static <L, R> Tuple<L, R> of(L left, R right) {
+        return new Tuple<>(left, right);
     }
-
-    public static <X, Y> Tuple<X, Y> of(X l, Y r) {
-        return new Tuple<>(l, r);
-    }
-
-    public static <X> Tuple<X, X> of(X... array) {
+    /**
+     * Creates a tuple, with both elements of same type, from an array. The array MUST be 2 elements long.
+     * @exception RuntimeException is thrown if the length of the array is not equal to two
+     * @param <T> type for the elements of the array and both sides of the tuple
+     * @param array from which the elements are created
+     * @return the tuple object representing the array
+     */
+    public static <T> Tuple<T, T> of(T... array) {
         if (array.length != 2) {
             throw new RuntimeException("Array must contain exactly 2 elements, had: " + Arrays.deepToString(array));
         }
         return Tuple.of(array[0], array[1]);
     }
-
-    public static <B> Tuple<List<B>, List<B>> of(B[] l, B[] r) {
-        return (Tuple<List<B>, List<B>>) of(Arrays.asList(r), Arrays.asList(l));
-    }
+   
 
     public static <X, Y> List<Tuple<X, Y>> listFrom(Tuple<? extends Collection<X>, ? extends Collection<Y>> t) {
 //        return listFromStreamTuples(t.mapLeft(Collection::stream).mapRight(Collection::stream));
@@ -68,8 +99,8 @@ public class Tuple<X, Y> {
             int diff;
             Collection smaller = ((diff = rights.size() - lefts.size()) < 0) ? rights : lefts;
             smaller.addAll(Stream.generate(() -> null)
-                .limit(Math.abs(diff))
-                .collect(Collectors.toList()));
+                    .limit(Math.abs(diff))
+                    .collect(Collectors.toList()));
             List<Tuple<X, Y>> ret = new ArrayList();
             for (int i = 0; i < lefts.size(); i++) {
                 ret.add(new Tuple(lefts.get(i), rights.get(i)));
@@ -78,8 +109,8 @@ public class Tuple<X, Y> {
         });
     }
 
-    public List<Tuple<X, Y>> asList() {
-        return Tuple.listFrom((Tuple<? extends Collection<X>, ? extends Collection<Y>>) this);
+    public List<Tuple<L, R>> asList() {
+        return Tuple.listFrom((Tuple<? extends Collection<L>, ? extends Collection<R>>) this);
     }
 
     public static <X> double samePairsPercentage(List<Tuple<X, X>> tar) {
@@ -88,12 +119,12 @@ public class Tuple<X, Y> {
 
     public static <X> double samePairsPercentage(Stream<Tuple<X, X>> tar) {
         return tar.map(tuple -> tuple.map((X left, X right) -> (left.equals(right)) ? 1 : 0))
-            .collect(Collectors.averagingDouble(s -> s));
+                .collect(Collectors.averagingDouble(s -> s));
     }
-    private final X left;
-    private final Y right;
+    private final L left;
+    private final R right;
 
-    private Tuple(X l, Y r) {
+    private Tuple(L l, R r) {
         this.right = r;
         this.left = l;
     }
@@ -103,7 +134,7 @@ public class Tuple<X, Y> {
         if (obj instanceof Tuple) {
             Tuple conv = (Tuple) obj;
             if ((conv.left.equals(this.left) || conv.left.equals(this.right))
-                && (conv.right.equals(this.right) || conv.right.equals(this.left))) {
+                    && (conv.right.equals(this.right) || conv.right.equals(this.left))) {
                 return true;
             }
         }
@@ -117,15 +148,15 @@ public class Tuple<X, Y> {
         return hash;
     }
 
-    public void consume(BiConsumer<X, Y> b) {
+    public void consume(BiConsumer<L, R> b) {
         b.accept(left, right);
     }
 
-    public X left() {
+    public L left() {
         return this.left;
     }
 
-    public Y right() {
+    public R right() {
         return this.right;
     }
 
@@ -140,11 +171,11 @@ public class Tuple<X, Y> {
         return (Tuple<R, R>) Tuple.of(mapper.apply((T) left), mapper.apply((T) right));
     }
 
-    public <T> Tuple<T, Y> mapLeft(Function<? super X, ? extends T> mapper) {
+    public <T> Tuple<T, R> mapLeft(Function<? super L, ? extends T> mapper) {
         return Tuple.of(mapper.apply(left), right);
     }
 
-    public <T> Tuple<X, T> mapRight(Function<? super Y, ? extends T> mapper) {
+    public <T> Tuple<L, T> mapRight(Function<? super R, ? extends T> mapper) {
         return Tuple.of(left, mapper.apply(right));
     }
 

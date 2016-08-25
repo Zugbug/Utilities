@@ -124,13 +124,13 @@ public class EasyFile {
     }
 
     public static String read(File file) throws FileNotFoundException {
-        return stream(new Scanner(file))
-            .reduce((a, b) -> a + "\n" + b).orElse("");
+        return stream(new Scanner(file).useDelimiter("\n"))
+                .reduce((a, b) -> a  +"\n"+ b).orElse("");
     }
 
-    public static Stream<String> stream(Scanner src) {
-        return StreamSupport.stream(((Iterable<String>) ((Supplier<Scanner>) () -> src.useDelimiter("\n"))::get)
-            .spliterator(), false);
+    public static Stream<String> stream(Scanner scanner) {
+        return StreamSupport.stream(((Iterable<String>) ((ThrowingSupplier<Scanner>) () -> scanner)::get)
+                .spliterator(), false);
     }
 
     public static void append(File tar, String msg) throws FileNotFoundException {
