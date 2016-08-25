@@ -29,24 +29,32 @@ public class Logic {
 
     }
 
+    public static <T> Stream<T> everyNthElement(int nth,int offset, T... ts) {
+        if(nth<0)throw new RuntimeException("NEGATIVE ITERATION NOT YET IMPLEMENTED");
+        return (nth < 1) ? Stream.of(ts) : Stream.iterate(offset, s -> nth + s).limit(ts.length / nth).map(s -> ts[s]);
+    }
+    public static <T> Stream<T> everyNthElement(int nth, T... ts) {
+        return everyNthElement(nth, 0, ts);
+    }
+
     static public String rot13(String entry) {
         return entry.chars().boxed().map(s -> (char) s.intValue())
-                .map((Character t) -> {
-                    if (!Character.isLetter(t)) {
-                        return (int) t;
-                    }
-                    int offset;
-                    if (Character.isUpperCase(t)) {
-                        offset = 65;
-                    } else {
-                        offset = 97;
-                    }
-                    int start = ((int) t) - offset;
-                    return (offset + ((start + 13) % 26));
-                })
-                .map(s -> (char) s.intValue() + "")
-                .reduce((a, b) -> a + "" + b)
-                .orElse("");
+            .map((Character t) -> {
+                if (!Character.isLetter(t)) {
+                    return (int) t;
+                }
+                int offset;
+                if (Character.isUpperCase(t)) {
+                    offset = 65;
+                } else {
+                    offset = 97;
+                }
+                int start = ((int) t) - offset;
+                return (offset + ((start + 13) % 26));
+            })
+            .map(s -> (char) s.intValue() + "")
+            .reduce((a, b) -> a + "" + b)
+            .orElse("");
     }
 
     /**
@@ -170,7 +178,7 @@ public class Logic {
      * Searches the iterable sequentially for the first instance where the
      * predicate returns true. Returns an optional of that value.
      *
-     * @see Logic#findAny(java.util.function.Predicate, java.lang.Iterable) 
+     * @see Logic#findAny(java.util.function.Predicate, java.lang.Iterable)
      * @param <T> type of the value contained in the iterable
      * @param matcher predicate used to find the value
      * @param targets varargs array to be searched
