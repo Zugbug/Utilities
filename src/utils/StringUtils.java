@@ -20,14 +20,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Stack;
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
-import java.util.function.Supplier;
-import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -85,10 +79,6 @@ public class StringUtils {
         return ret.stream().reduce((a, b) -> a + "\n" + b).orElse("");
     }
 
-    public static <T> Stream<T> everyNthElement(int nth, T... ts) {
-        return (nth < 1) ? Stream.of(ts) : Stream.iterate(0, s -> 1 + s).limit(ts.length / nth).map(s -> nth * s).map(s -> ts[s]);
-    }
-
     public static String formatJustify(String src, int maxWidth) {
         int extra;
         String[] bits = src.split(" ");
@@ -113,12 +103,12 @@ public class StringUtils {
 
     public static String join(String j, String a, String b) {
         return (!a.isEmpty())
-                ? (!b.isEmpty())
-                        ? a + j + b
-                        : a
-                : (!b.isEmpty())
-                        ? b
-                        : "";
+            ? (!b.isEmpty())
+                ? a + j + b
+                : a
+            : (!b.isEmpty())
+                ? b
+                : "";
     }
 
     public static double analyseCharDensity(char c, Font f) {
@@ -285,11 +275,11 @@ public class StringUtils {
         int max = Stream.of(matrix).flatMapToInt(IntStream::of).max().getAsInt();
         int min = Stream.of(matrix).flatMapToInt(IntStream::of).min().getAsInt();
         int range = 1 + max
-                - min;
+            - min;
         for (int[] matrix1 : matrix) {
             for (int y = 0; y < matrix1.length; y++) {
                 sb.append(
-                        ramps[(int) ((matrix1[y] - min) * ((float) (ramps.length) / (range)))]
+                    ramps[(int) ((matrix1[y] - min) * ((float) (ramps.length) / (range)))]
                 );
 
             }
