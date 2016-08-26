@@ -8,6 +8,7 @@ package utils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -80,6 +81,16 @@ public class Tuple<L, R> {
         return new Tuple<>(left, right);
     }
 
+    public static <L, R> List<Tuple<L, R>> zip(L[] left, R[] right) {
+        Iterator<L> l = Arrays.asList(left).iterator();
+        Iterator<R> r = Arrays.asList(right).iterator();
+        ArrayList<Tuple<L, R>> ret = new ArrayList();
+        while (l.hasNext() && r.hasNext()) {
+            ret.add(Tuple.of(l.next(), r.next()));
+        }
+        return ret;
+    }
+
     /**
      * Creates a tuple, from pairs of elements in the array. The array MUST be
      * of even length. If the length of the array is longer than 2, then the
@@ -113,22 +124,22 @@ public class Tuple<L, R> {
      * !WARNING: HERE BE DRAGONS. Instead make a tuple of two lists and then use
      * {@link utils.Tuple#asList() asList method}.
      *
-     * @param <X>
-     * @param <Y>
+     * @param <L>
+     * @param <R>
      * @param t
      * @return
      */
-    private static <X, Y> List<Tuple<X, Y>> listFrom(Tuple<? extends Collection<X>, ? extends Collection<Y>> t) {
+    private static <L, R> List<Tuple<L, R>> listFrom(Tuple<? extends Collection<L>, ? extends Collection<R>> t) {
 //        return listFromStreamTuples(t.mapLeft(Collection::stream).mapRight(Collection::stream));
-        return t.map((BiFunction<Collection<X>, Collection<Y>, List<Tuple<X, Y>>>) (Collection<X> t1, Collection<Y> u) -> {
-            List<X> lefts = new ArrayList<>(t1);
-            List<Y> rights = new ArrayList<>(u);
+        return t.map((BiFunction<Collection<L>, Collection<R>, List<Tuple<L, R>>>) (Collection<L> t1, Collection<R> u) -> {
+            List<L> lefts = new ArrayList<>(t1);
+            List<R> rights = new ArrayList<>(u);
             int diff;
             Collection smaller = ((diff = rights.size() - lefts.size()) < 0) ? rights : lefts;
             smaller.addAll(Stream.generate(() -> null)
                 .limit(Math.abs(diff))
                 .collect(Collectors.toList()));
-            List<Tuple<X, Y>> ret = new ArrayList();
+            List<Tuple<L, R>> ret = new ArrayList();
             for (int i = 0; i < lefts.size(); i++) {
                 ret.add(new Tuple(lefts.get(i), rights.get(i)));
             }
