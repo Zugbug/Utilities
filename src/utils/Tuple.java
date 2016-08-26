@@ -167,10 +167,8 @@ public class Tuple<L, R> {
     public boolean equals(Object obj) {
         if (obj instanceof Tuple) {
             Tuple conv = (Tuple) obj;
-            if ((conv.left.equals(this.left) || conv.left.equals(this.right))
-                && (conv.right.equals(this.right) || conv.right.equals(this.left))) {
-                return true;
-            }
+            return ((conv.left.equals(this.left) || conv.left.equals(this.right))
+                && (conv.right.equals(this.right) || conv.right.equals(this.left)));
         }
         return false;
     }
