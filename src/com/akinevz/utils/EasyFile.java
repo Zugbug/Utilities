@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package utils;
+package com.akinevz.utils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -13,8 +13,8 @@ import java.util.Scanner;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-import utils.Throwing.Consumer;
-import utils.Throwing.Supplier;
+import com.akinevz.utils.Throwing.Consumer;
+import com.akinevz.utils.Throwing.Supplier;
 
 /**
  *

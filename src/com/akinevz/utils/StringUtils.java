@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package utils;
+package com.akinevz.utils;
 
 import java.awt.Canvas;
 import java.awt.Color;

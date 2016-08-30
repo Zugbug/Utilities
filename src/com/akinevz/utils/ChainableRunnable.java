@@ -1,4 +1,4 @@
-package utils;
+package com.akinevz.utils;
 
 /**
  * ChainableRunnable provides pseudo-"syntactic sugar" for chanining multiple
