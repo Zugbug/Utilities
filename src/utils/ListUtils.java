@@ -15,7 +15,14 @@ import java.util.function.Supplier;
  * @author zugbug
  */
 public class ListUtils {
-
+    /**
+     * 
+     * @param <T>
+     * @param src
+     * @param pos
+     * @return
+     * @throws Exception 
+     */
     public static <T> List<T> swap(List<T> src, int pos) throws Exception {
         if (src.size() - Math.abs(pos) - 1 < 0) {
             throw new Exception("Index out of bounds - " + pos);
