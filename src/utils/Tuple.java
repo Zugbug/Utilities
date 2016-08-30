@@ -81,9 +81,34 @@ public class Tuple<L, R> {
         return new Tuple<>(left, right);
     }
 
+    /**
+     * Makes a list, where elements of the two lists with same positions are put
+     * into a tuple, where the tuples are then put into a single list. &lt
+     * Convenience method &gt
+     *
+     * @param <L> type of all of the left elements
+     * @param <R> type of all of the right elements
+     * @param left array containing elements for the lefts
+     * @param right array containing elements for the rights
+     * @return a list of tuples
+     */
     public static <L, R> List<Tuple<L, R>> zip(L[] left, R[] right) {
-        Iterator<L> l = Arrays.asList(left).iterator();
-        Iterator<R> r = Arrays.asList(right).iterator();
+        return zip(Arrays.asList(left), Arrays.asList(right));
+    }
+
+    /**
+     * Makes a list, where elements of the two lists with same positions are put
+     * into a tuple, where the tuples are then put into a single list.
+     *
+     * @param <L> type of all of the left elements
+     * @param <R> type of all of the right elements
+     * @param left list containing elements for the lefts
+     * @param right list containing elements for the rights
+     * @return a list of tuples
+     */
+    public static <L, R> List<Tuple<L, R>> zip(List<L> left, List<R> right) {
+        Iterator<L> l = left.iterator();
+        Iterator<R> r = right.iterator();
         ArrayList<Tuple<L, R>> ret = new ArrayList();
         while (l.hasNext() && r.hasNext()) {
             ret.add(Tuple.of(l.next(), r.next()));
@@ -94,9 +119,10 @@ public class Tuple<L, R> {
     /**
      * Creates a tuple, from pairs of elements in the array. The array MUST be
      * of even length. If the length of the array is longer than 2, then the
-     * result is a tuple made up of two lists, where the even elements are on
-     * the left and the odd elements are on the right. Otherwise returns a
-     * simple tuple with first element on the left and second on the right.
+     * result is a tuple made up of two lists, where the elements get
+     * alternated: every even indexed element on the left, and every odd indexed
+     * element on the right. If provided with more than 2 elements, {@link Tuple#asList()
+     * } MUST be called.
      *
      * @exception RuntimeException is thrown if the length of the array is not
      * of even length
@@ -129,7 +155,7 @@ public class Tuple<L, R> {
      * @param t
      * @return
      */
-    private static <L, R> List<Tuple<L, R>> listFrom(Tuple<? extends Collection<L>, ? extends Collection<R>> t) {
+    public static <L, R> List<Tuple<L, R>> listFrom(Tuple<? extends Collection<L>, ? extends Collection<R>> t) {
 //        return listFromStreamTuples(t.mapLeft(Collection::stream).mapRight(Collection::stream));
         return t.map((BiFunction<Collection<L>, Collection<R>, List<Tuple<L, R>>>) (Collection<L> t1, Collection<R> u) -> {
             List<L> lefts = new ArrayList<>(t1);
@@ -137,8 +163,8 @@ public class Tuple<L, R> {
             int diff;
             Collection smaller = ((diff = rights.size() - lefts.size()) < 0) ? rights : lefts;
             smaller.addAll(Stream.generate(() -> null)
-                .limit(Math.abs(diff))
-                .collect(Collectors.toList()));
+                    .limit(Math.abs(diff))
+                    .collect(Collectors.toList()));
             List<Tuple<L, R>> ret = new ArrayList();
             for (int i = 0; i < lefts.size(); i++) {
                 ret.add(new Tuple(lefts.get(i), rights.get(i)));
@@ -148,8 +174,10 @@ public class Tuple<L, R> {
     }
 
     /**
+     * If the tuple contains two collections, it transforms to be a single list
+     * of tuple pairings. Example: ([a,b,c],[1,2,3]) becomes [(a,1),(b,2),(c,3)]
      *
-     * @return
+     * @return a list containing tuples
      */
     public List<Tuple<L, R>> asList() {
         return Tuple.listFrom((Tuple<? extends Collection<L>, ? extends Collection<R>>) this);
@@ -168,7 +196,7 @@ public class Tuple<L, R> {
         if (obj instanceof Tuple) {
             Tuple conv = (Tuple) obj;
             return ((conv.left.equals(this.left) || conv.left.equals(this.right))
-                && (conv.right.equals(this.right) || conv.right.equals(this.left)));
+                    && (conv.right.equals(this.right) || conv.right.equals(this.left)));
         }
         return false;
     }
