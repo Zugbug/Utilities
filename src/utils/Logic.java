@@ -19,63 +19,107 @@ import java.util.stream.Stream;
  */
 public class Logic {
 
-    static public String caesar(String orig, int offset) {
-        Function<Integer, Character> begin = (s) -> (Character.isUpperCase(s) ? 'A' : 'a');
-        return orig.chars().map(s -> begin.apply(s) + wrap(s - begin.apply(s), 26, offset)).mapToObj(s -> (char) s).map(Object::toString).reduce((a, b) -> a + b).orElse("");
-    }
-
-    static public int wrap(int src, int range, int offset) {
-        return (range + src + offset) % range;
-
-    }
-
-    public static <T> Stream<T> everyNthElement(int nth,int offset, T... ts) {
-        if(nth<0)throw new RuntimeException("NEGATIVE ITERATION NOT YET IMPLEMENTED");
-        return (nth < 1) ? Stream.of(ts) : Stream.iterate(offset, s -> nth + s).limit(ts.length / nth).map(s -> ts[s]);
-    }
-    public static <T> Stream<T> everyNthElement(int nth, T... ts) {
-        return everyNthElement(nth, 0, ts);
-    }
-
-    static public String rot13(String entry) {
-        return entry.chars().boxed().map(s -> (char) s.intValue())
-            .map((Character t) -> {
-                if (!Character.isLetter(t)) {
-                    return (int) t;
-                }
-                int offset;
-                if (Character.isUpperCase(t)) {
-                    offset = 65;
-                } else {
-                    offset = 97;
-                }
-                int start = ((int) t) - offset;
-                return (offset + ((start + 13) % 26));
-            })
-            .map(s -> (char) s.intValue() + "")
-            .reduce((a, b) -> a + "" + b)
-            .orElse("");
+    /**
+     * Simple Caesar crypt. Takes every character in a string and moves it's
+     * codepoint by the given offset. Works for both uppercase and lowercase
+     * ASCII English characters.
+     *
+     * @param source string
+     * @param offset for each character
+     * @return encrypted string
+     */
+    static public String caesar(String source, int offset) {
+        Function<Integer, Character> alphabetStart = (s) -> (Character.isUpperCase(s) ? 'A' : 'a');
+        return source.chars()
+                .map(s -> alphabetStart.apply(s) + wrap(s - alphabetStart.apply(s), offset, 26))
+                .mapToObj(s -> (char) s).map(Object::toString)
+                .reduce((a, b) -> a + b).orElse("");
     }
 
     /**
-     * compares as lower < src < upper;
+     * Simple wrapping function. Offsets the source number, but keeps it within
+     * the range by wrapping it back around.
      *
-     * @param <T>
-     * @param src
-     * @param lower
-     * @param upper
-     * @return
+     * @param source number to start from
+     * @param offset number to add to source
+     * @param range number to constrain the output to
+     * @return the number between 
+     */
+    static public int wrap(int source, int offset, int range) {
+        return (range + source + offset) % range;
+
+    }
+    /**
+     * Returns every Nth element of an array as a stream. 
+     * @param <T> Type of the array
+     * @param nth item in the array, starting with 0 offset
+     * @param offset changes which is counted as the first item in the array
+     * @param ts array containing elements
+     * @return a stream of elements which satisfy this function
+     */
+    public static <T> Stream<T> everyNthElement(int nth, int offset, T... ts) {
+        if (nth < 0) {
+            throw new RuntimeException("NEGATIVE ITERATION NOT YET IMPLEMENTED");
+        }
+        return (nth < 1) ? Stream.of(ts) : Stream.iterate(offset, s -> nth + s).limit(ts.length / nth).map(s -> ts[s]);
+    }
+    /**
+     * Returns every Nth element of an array as a stream. 
+     * @param <T> Type of the array
+     * @param nth item in the array, starting with 0 offset
+     * @param ts array containing elements
+     * @return a stream of elements which satisfy this function
+     */
+    public static <T> Stream<T> everyNthElement(int nth, T... ts) {
+        return everyNthElement(nth, 0, ts);
+    }
+    
+    static public String rot13(String entry) {
+        return entry.chars().boxed().map(s -> (char) s.intValue())
+                .map((Character t) -> {
+                    if (!Character.isLetter(t)) {
+                        return (int) t;
+                    }
+                    int offset;
+                    if (Character.isUpperCase(t)) {
+                        offset = 65;
+                    } else {
+                        offset = 97;
+                    }
+                    int start = ((int) t) - offset;
+                    return (offset + ((start + 13) % 26));
+                })
+                .map(s -> (char) s.intValue() + "")
+                .reduce((a, b) -> a  + b)
+                .orElse("");
+    }
+
+    /**
+     * Compares whether variable src lies between lower and upper;
+     * ex: lower &lt src &lt upper
+     * @param <T> type of the variables being compared. Must extend Comparable
+     * @param src compared value
+     * @param lower lower bound
+     * @param upper upper bound
+     * @return whether src lies between lower and upper
      */
     public static <T extends Comparable<T>> boolean between(T lower, T src, T upper) {
         return src.compareTo(lower) + src.compareTo(upper) == 0;
     }
-
-    public static <T> T[][] make2DArray(Class<T> clazz, int... dim) {
-        return make2DArray(clazz, null, dim);
+    /**
+     * Creates a 2d array with given dimensions
+     * @param <T> type of the array's elements
+     * @param clazz reference to the type of the elements
+     * @param x dimension of the outermost array
+     * @param y dimension of the innermost array
+     * @return a 2d array, preinitialised with "null"
+     */
+    public static <T> T[][] make2DArray(Class<T> clazz, int x, int y) {
+        return make2DArray(clazz, null, x,y);
     }
 
-    public static <T> T[][] make2DArray(Class<T> clazz, T defaultVal, int... dim) {
-        T[][] ret = (T[][]) Array.newInstance(clazz, dim);
+    public static <T> T[][] make2DArray(Class<T> clazz, T defaultVal, int x, int y) {
+        T[][] ret = (T[][]) Array.newInstance(clazz, x,y);
         for (T[] ts : ret) {
             for (int i = 0; i < ts.length; i++) {
                 ts[i] = defaultVal;
@@ -84,73 +128,6 @@ public class Logic {
         return ret;
     }
 
-    public static Iterable<Integer> range(int s, int e, int o) {
-        if (e - s >= 0 && o < 0 || s - e >= 0 && o > 0) {
-            return () -> new Iterator<Integer>() {
-                @Override
-                public boolean hasNext() {
-                    return false;
-                }
-
-                @Override
-                public Integer next() {
-                    return 0;
-                }
-            };
-        }
-        return (o > 0) ? () -> new Iterator<Integer>() {
-            int index;
-
-            {
-                index = s - o;
-            }
-
-            @Override
-            public boolean hasNext() {
-                return (index + o) < e;
-            }
-
-            @Override
-            public Integer next() {
-                return index = index + o;
-            }
-        } : (o < 0) ? () -> new Iterator<Integer>() {
-            int index;
-
-            {
-                index = s - o;
-            }
-
-            @Override
-            public boolean hasNext() {
-                return (index - o) > e;
-            }
-
-            @Override
-            public Integer next() {
-                return index = index - o;
-            }
-        } : new Iterable<Integer>() {
-            @Override
-            public Iterator<Integer> iterator() {
-                return new Iterator<Integer>() {
-                    @Override
-                    public boolean hasNext() {
-                        return false;
-                    }
-
-                    @Override
-                    public Integer next() {
-                        return 0;
-                    }
-                };
-            }
-        };
-    }
-
-    public static Iterable<Integer> range(int s, int e) {
-        return range(s, e, (s > e) ? 1 : -1);
-    }
 
     public static <T> boolean matchAny(Predicate<? super T> match, T... targets) {
         return findAny(match, targets).isPresent();
