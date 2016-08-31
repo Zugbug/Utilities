@@ -5,16 +5,15 @@
  */
 package com.akinevz.utils;
 
+import com.akinevz.utils.Throwing.Consumer;
+import com.akinevz.utils.Throwing.Supplier;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.util.Scanner;
-import java.util.function.Function;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-import com.akinevz.utils.Throwing.Consumer;
-import com.akinevz.utils.Throwing.Supplier;
 
 /**
  *

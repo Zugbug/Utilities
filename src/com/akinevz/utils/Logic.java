@@ -7,7 +7,6 @@ package com.akinevz.utils;
 
 import java.lang.reflect.Array;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
