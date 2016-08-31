@@ -10,6 +10,19 @@ package com.akinevz.utils;
  * @author zugbug
  */
 public class Throwing {
+    /**
+     * Function that returns false if the supplier throws an exception.
+     * @param s function to test
+     * @return whether the function doesn't throw an exception
+     */
+    public static boolean passes(Throwing.Supplier s){
+        try {
+            s.get();
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
 
     /**
      * @see Function
