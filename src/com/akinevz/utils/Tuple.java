@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -209,13 +210,27 @@ public class Tuple<L, R> {
     }
 
     /**
-     * Feeds the two values into a function. Analogous to a
+     * Accepts a function that takes two parameters and returns nothing.
+     * Analogous to a
      * {@link Collection#forEach(java.util.function.Consumer) forEach}.
      *
      * @param b function that accepts two values
      */
     public void consume(BiConsumer<L, R> b) {
         b.accept(left, right);
+    }
+
+    /**
+     * Applies the values of left and right into a function, one at a time.
+     * Always applies left first then right. If reversed order is desired then
+     * use the {@link Tuple#swap() swap function}.
+     *
+     * @param <T> type to be consumed. Must be supertype of both sides' types
+     * @param b
+     */
+    public <T extends L, R> void consume(Consumer<T> b) {
+        b.accept((T) left);
+        b.accept((T) right);
     }
 
     /**
