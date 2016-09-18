@@ -1,7 +1,7 @@
 package com.akinevz.utils;
 
 /**
- * ChainableRunnable provides pseudo-"syntactic sugar" for chanining multiple
+ * ChainableRunnable provides pseudo-"syntactic sugar" for chaining multiple
  * runnables. There's a way to construct them functionally and parametrically.
  *
  * @author zugbug
